@@ -1,5 +1,5 @@
-#include "SmoothPath.hpp"
-#include <Arduino.h>
+#include "smooth_path.hpp"
+#include <cmath>
 
 template <typename T>
 SmoothingPath<T>::SmoothingPath() {

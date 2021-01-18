@@ -7,7 +7,7 @@ cmake ..
 
 #build
 echo "----------build----------"
-make
+cmake --build .
 
 #reset
 cd ..

@@ -1,3 +1,6 @@
+#ifndef _SMOOTH_PATH_H
+#define _SMOOTH_PATH_H
+
 template<typename T>
 class SmoothingPath {
     public:
@@ -12,3 +15,5 @@ class SmoothingPath {
     double start_time_;
     double smoothing_time_;
 };
+
+#endif

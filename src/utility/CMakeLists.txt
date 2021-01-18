@@ -1,7 +1,8 @@
-# utility
+# src/utility
 
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} source)
+# make library
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SRCS)
+add_library(utility ${SRCS})
 
-# add_library(utility ${source})
-
-# target_include_directories(utility PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+# link library with others
+target_link_libraries(utility eigen)

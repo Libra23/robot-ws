@@ -8,4 +8,6 @@ cmake_minimum_required(VERSION 3.1)
 # set the project name and version
 project(robot-ws CXX)
 
+set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall")
+
 add_subdirectory(src)
