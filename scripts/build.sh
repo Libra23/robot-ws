@@ -2,12 +2,11 @@
 
 #cmake
 echo "----------cmake----------"
-cd build
-cmake ..
+cmake -B build
 
 #build
 echo "----------build----------"
-cmake --build .
+cmake --build build
 
 #reset
 cd ..
