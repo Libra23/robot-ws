@@ -1,6 +1,6 @@
 #include <iostream>
 #include <iomanip>
-#include "utility/kinematic.hpp"
+#include "algorithm/kinematic.hpp"
 
 Kinematic kinematic_;
 

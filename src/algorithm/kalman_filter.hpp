@@ -13,11 +13,12 @@ class KalmanFilter {
     void SetObserveEquation(const std::function<Vector3d(const Vector3d&, const Vector3d&)>& eq);
     void SetVariance(const Matrix3d& Q, const Matrix3d& R);
     Vector3d Apply(const Vector3d& u, const Vector3d& y);
-    Vector3d GetState() const;
-    Matrix3d UpdateJacobian(const Vector3d& x, const Vector3d& u, const std::function<Vector3d(const Vector3d&, const Vector3d&)>& f);
+    Vector3d GetOdometryState() const;
+    Vector3d GetOdometryOutput() const;
+    static Matrix3d UpdateJacobian(const Vector3d& x, const Vector3d& u, const std::function<Vector3d(const Vector3d&, const Vector3d&)>& f);
 
     private:
-    Vector3d x_;
+    Vector3d x_, x_odometry_, y_odometry_;
     Matrix3d A_, B_, C_, D_;
     Matrix3d P_, Q_, R_;
     bool non_linear_state_, non_linear_observe_;
