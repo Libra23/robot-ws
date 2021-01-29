@@ -7,6 +7,3 @@ cmake -B build
 #build
 echo "----------build----------"
 cmake --build build
-
-#reset
-cd ..
