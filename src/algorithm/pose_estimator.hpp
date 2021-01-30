@@ -1,5 +1,5 @@
-#ifndef IMU_ESTIMATOR_H
-#define IMU_ESTIMATOR_H
+#ifndef POSE_ESTIMATOR_H
+#define POSE_ESTIMATOR_H
 
 #include "kalman_filter.hpp"
 #include "math_const.hpp"
@@ -17,7 +17,7 @@ class PoseEstimator {
     void Calibration(const Vector3d& rpy_observe);    
     KalmanFilter kalman_;
     bool calibration_;
-    unsigned int counter_;
+    uint32_t counter_;
     Vector3d rpy_observe_mean_, rpy_observe_var_;
     Vector3d omega_bias_;
 };

@@ -64,7 +64,7 @@ VectorXd KalmanFilter::Apply(const VectorXd& u, const VectorXd& y) {
     const MatrixXd K_kalman = P_odometry * C_.transpose() * (C_ * P_odometry * C_.transpose() + R_).inverse();
 
     x_ = x_odometry_ + K_kalman * (y - y_odometry_);
-    P_ = (Identity3d() - K_kalman * C_) * P_odometry;
+    P_ = (Matrix3d::Identity() - K_kalman * C_) * P_odometry;
 
     return x_;
 }

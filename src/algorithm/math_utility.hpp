@@ -2,6 +2,7 @@
 #define MATH_UTILITY_H
 
 #include <Eigen/Dense>
+
 typedef Eigen::Matrix<double, 3, 1> Vector3d;
 typedef Eigen::Matrix<double, 6, 1> Vector6d;
 typedef Eigen::Matrix<double, 3, 3> Matrix3d;
@@ -14,10 +15,6 @@ Matrix3d MatrixFromAxisAndValue(const Vector3d& axis, double value);
 Matrix3d MatrixFromRpy(const Vector3d& rpy);
 Vector3d Rpy(const Matrix3d& m);
 Vector3d Rpy(const Vector3d& v, const Vector3d& v_pre);
-double Dot(const Vector3d& v0, const Vector3d& v1);
-Vector3d Cross3d(const Vector3d& v0, const Vector3d& v1);
-double Norm3d(const Vector3d& v);
-Matrix3d Identity3d();
-Matrix3d Zero3d();
+Vector6d Differentiate(const Affine3d& trans, const Affine3d& trans_pre, double dt);
 
 #endif

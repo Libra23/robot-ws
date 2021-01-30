@@ -8,8 +8,8 @@ class KalmanFilterTest : public ::testing::Test {
     protected:
     KalmanFilterTest() :
         filter_(3, 3, 3){
-        Matrix3d Q = Identity3d() * 1e-6;
-        Matrix3d R = Identity3d() * 1e-6;
+        Matrix3d Q = Matrix3d::Identity() * 1e-6;
+        Matrix3d R = Matrix3d::Identity() * 1e-6;
         filter_.SetVariance(Q, R);
     }
     KalmanFilter filter_;
@@ -123,18 +123,18 @@ TEST_F(KalmanFilterTest, CheckJacobian) {
     for (int n = 0; n < num_test; n++) {
         Vector3d x = Vector3d::Random();
         Vector3d u = Vector3d::Random();
-        std::cout << " x " << x.transpose() << std::endl;
-        std::cout << " u " << u.transpose() << std::endl;
+        //std::cout << " x " << x.transpose() << std::endl;
+        //std::cout << " u " << u.transpose() << std::endl;
         // true
         Matrix3d jacobian_state_expect = JacobianNonLinearStateEq(x, u);
-        std::cout << " jacobian_state_expect " << jacobian_state_expect << std::endl;
+        //std::cout << " jacobian_state_expect " << jacobian_state_expect << std::endl;
         Matrix3d jacobian_observe_expect = JacobianNonLinearObserveEq(x, u);
-        std::cout << " jacobian_observe_expect " << jacobian_observe_expect << std::endl;
+        //std::cout << " jacobian_observe_expect " << jacobian_observe_expect << std::endl;
         // kalman class
         Matrix3d jacobian_state_kalman = KalmanFilter::UpdateJacobian(x, u, NonLinearStateEq);
-        std::cout << " jacobian_state_kalman " << jacobian_state_kalman << std::endl;
+        //std::cout << " jacobian_state_kalman " << jacobian_state_kalman << std::endl;
         Matrix3d jacobian_observe_kalman = KalmanFilter::UpdateJacobian(x, u, NonLinearObserveEq);
-        std::cout << " jacobian_observe_kalman " << jacobian_observe_kalman << std::endl;
+        //std::cout << " jacobian_observe_kalman " << jacobian_observe_kalman << std::endl;
         // check
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {

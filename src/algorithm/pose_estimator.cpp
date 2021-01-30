@@ -7,11 +7,11 @@ PoseEstimator::PoseEstimator() :
     rpy_observe_mean_(Vector3d::Zero()),
     rpy_observe_var_(Vector3d::Zero()),
     omega_bias_(Vector3d::Zero()) { 
-    kalman_.SetState(Vector3d(0.0, 0.0, 0.0));
+    kalman_.SetState(Vector3d::Zero());
     kalman_.SetStateEquation(RpyFromGyro);  // enable non linear kalman filter
-    kalman_.SetObserveEquation(Identity3d(), Zero3d());
-    Matrix3d Q = Identity3d() * DEG_TO_RAD * DEG_TO_RAD; // sigma = 1 deg^2
-    Matrix3d R = Identity3d() * 1e-6; // sigma = 1 deg^2
+    kalman_.SetObserveEquation(Matrix3d::Identity(), Matrix3d::Zero());
+    Matrix3d Q = Matrix3d::Identity() * DEG_TO_RAD * DEG_TO_RAD; // sigma = 1 deg^2
+    Matrix3d R = Matrix3d::Identity() * 1e-6; // sigma = 1 deg^2
     kalman_.SetVariance(Q, R);
 }
 
@@ -19,9 +19,9 @@ void PoseEstimator::StartCalibration() {
     if (calibration_ == false) {
         calibration_ = true;
         counter_ = 0;
-        omega_bias_ = Vector3d(0.0, 0.0, 0.0);
-        rpy_observe_mean_ = Vector3d(0.0, 0.0, 0.0);
-        rpy_observe_var_ = Vector3d(0.0, 0.0, 0.0);
+        omega_bias_ = Vector3d::Zero();
+        rpy_observe_mean_ = Vector3d::Zero();
+        rpy_observe_var_ = Vector3d::Zero();
     }
 }
 
@@ -41,7 +41,7 @@ Vector3d PoseEstimator::UpdateRpy(const Vector3d& alpha, const Vector3d& omega, 
 }
 
 Vector3d PoseEstimator::RpyFromAccel(const Vector3d& alpha) {
-    const Vector3d alpha_0 = Vector3d(0.0, 0.0, -sqrt(alpha(X) * alpha(X) + alpha(Y) * alpha(Y) + alpha(Z) * alpha(Z)));
+    const Vector3d alpha_0 = Vector3d(0.0, 0.0, -sqrt(alpha.norm()));
     return Rpy(alpha_0, alpha); // rotate coordinate
 }
 
@@ -77,8 +77,8 @@ void PoseEstimator::Calibration(const Vector3d& rpy_observe) {
             observe_var += rpy_observe_var_(i);
         }
         observe_var /= XYZ;
-        Matrix3d Q = Identity3d() * DEG_TO_RAD * DEG_TO_RAD; // sigma = 1 deg^2
-        Matrix3d R = Identity3d();
+        Matrix3d Q = Matrix3d::Identity() * DEG_TO_RAD * DEG_TO_RAD; // sigma = 1 deg^2
+        Matrix3d R = Matrix3d::Identity();
         for (int i = 0; i < XYZ; i++) {
             R(i, i) = observe_var;
         }

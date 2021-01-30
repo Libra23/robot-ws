@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
+#include <Eigen/Dense>
 #include "pose_estimator.hpp"
-// #include <matplotlib/matplotlibcpp.h>
+//#include <matplotlib/matplotlibcpp.h>
 
 constexpr double TOLERANCE = 1e-6;
 

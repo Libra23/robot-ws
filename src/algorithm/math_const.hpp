@@ -9,8 +9,9 @@
 #define DEG_TO_RAD 0.017453292519943295769236907684886
 #endif
 
-#define NUM_JOINT 3
-#define DOF 3
+#ifndef PI
+#define PI 3.14159265358979323846264338327950288
+#endif
 
 enum Axis {
   X,

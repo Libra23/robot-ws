@@ -16,5 +16,5 @@ ninja -C build_esp32
 #flash
 echo "----------flash----------"
 cd build_esp32
-ESPPORT=/dev/tty.usbserial-9D52F70E93 ninja flash
+ESPPORT=/dev/tty.usbserial-3D528D75A9 ninja flash
 cd ..
