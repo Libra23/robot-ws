@@ -1,16 +1,18 @@
 #include "pose_estimator.hpp"
-#include "math_const.hpp"
 
-PoseEstimator::PoseEstimator() { 
-    kalman_.InitState(Vector3d(0.0, 0.0, 0.0));
+PoseEstimator::PoseEstimator() : 
+    kalman_(XYZ, XYZ, XYZ),
+    calibration_(false),
+    counter_(0),
+    rpy_observe_mean_(Vector3d::Zero()),
+    rpy_observe_var_(Vector3d::Zero()),
+    omega_bias_(Vector3d::Zero()) { 
+    kalman_.SetState(Vector3d(0.0, 0.0, 0.0));
     kalman_.SetStateEquation(RpyFromGyro);  // enable non linear kalman filter
     kalman_.SetObserveEquation(Identity3d(), Zero3d());
     Matrix3d Q = Identity3d() * DEG_TO_RAD * DEG_TO_RAD; // sigma = 1 deg^2
     Matrix3d R = Identity3d() * 1e-6; // sigma = 1 deg^2
     kalman_.SetVariance(Q, R);
-    calibration_ = false;
-    counter_ = 0;
-    omega_bias_ = Vector3d(0.0, 0.0, 0.0);
 }
 
 void PoseEstimator::StartCalibration() {

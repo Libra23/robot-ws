@@ -11,7 +11,7 @@ endif()
 project(robot-ws CXX)
 
 if(NOT DEFINED ENV{IDF_PATH})
-  message("!!! Linux !!!")
+  message("!!! CXX !!!")
   # option
   set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall")
   # sub directory

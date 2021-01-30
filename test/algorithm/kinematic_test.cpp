@@ -27,7 +27,7 @@ class KinematicTest : public ::testing::Test {
 };
 
 /**
- * @test forward kinematic
+ * @test test forward kinematic
  */
 TEST_F(KinematicTest, ForwardKinematic) {
     if (NUM_JOINT != 3) return;
@@ -40,6 +40,9 @@ TEST_F(KinematicTest, ForwardKinematic) {
     std::cout << tip_trans.translation().transpose() << std::endl;
 }
 
+/**
+ * @test check inverse kinematic
+ */
 TEST_F(KinematicTest, CheckInverseKinematic) {
     // prepare q
     Joint q_expect;

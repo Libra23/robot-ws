@@ -1,27 +1,30 @@
+#ifndef KALMAN_FILTER_H
+#define KALMAN_FILTER_H
+
 #include "math_utility.hpp"
 #include <functional>
 
-#define NUM_STATE 3
-
 class KalmanFilter {
     public:
-    KalmanFilter();
-    void InitState(const Vector3d& x);
-    void SetStateEquation(const Matrix3d& A, const Matrix3d& B);
-    void SetObserveEquation(const Matrix3d& C, const Matrix3d& D);
-    void SetStateEquation(const std::function<Vector3d(const Vector3d&, const Vector3d&)>& eq);
-    void SetObserveEquation(const std::function<Vector3d(const Vector3d&, const Vector3d&)>& eq);
-    void SetVariance(const Matrix3d& Q, const Matrix3d& R);
-    Vector3d Apply(const Vector3d& u, const Vector3d& y);
-    Vector3d GetOdometryState() const;
-    Vector3d GetOdometryOutput() const;
-    static Matrix3d UpdateJacobian(const Vector3d& x, const Vector3d& u, const std::function<Vector3d(const Vector3d&, const Vector3d&)>& f);
+    KalmanFilter(double num_state, double num_input, double num_output);
+    void SetState(const VectorXd& x);
+    void SetStateEquation(const MatrixXd& A, const MatrixXd& B);
+    void SetObserveEquation(const MatrixXd& C, const MatrixXd& D);
+    void SetStateEquation(const std::function<VectorXd(const VectorXd&, const VectorXd&)>& eq);
+    void SetObserveEquation(const std::function<VectorXd(const VectorXd&, const VectorXd&)>& eq);
+    void SetVariance(const MatrixXd& Q, const MatrixXd& R);
+    VectorXd Apply(const VectorXd& u, const VectorXd& y);
+    VectorXd GetOdometryState() const;
+    VectorXd GetOdometryOutput() const;
+    static MatrixXd UpdateJacobian(const VectorXd& x, const VectorXd& u, const std::function<VectorXd(const VectorXd&, const VectorXd&)>& f);
 
     private:
-    Vector3d x_, x_odometry_, y_odometry_;
-    Matrix3d A_, B_, C_, D_;
-    Matrix3d P_, Q_, R_;
-    bool non_linear_state_, non_linear_observe_;
-    std::function<Vector3d(const Vector3d&, const Vector3d&)> non_linear_state_equation_;
-    std::function<Vector3d(const Vector3d&, const Vector3d&)> non_linear_observe_equation_;
+    VectorXd x_, x_odometry_, y_odometry_;
+    MatrixXd A_, B_, C_, D_;
+    MatrixXd P_, Q_, R_;
+    bool is_non_linear_state_eq_, is_non_linear_observe_eq_;
+    std::function<VectorXd(const VectorXd&, const VectorXd&)> non_linear_state_equation_;
+    std::function<VectorXd(const VectorXd&, const VectorXd&)> non_linear_observe_equation_;
 };
+
+#endif

@@ -1,5 +1,5 @@
-#ifndef _SMOOTH_PATH_H
-#define _SMOOTH_PATH_H
+#ifndef SMOOTH_PATH_H
+#define SMOOTH_PATH_H
 
 template<typename T>
 class SmoothingPath {

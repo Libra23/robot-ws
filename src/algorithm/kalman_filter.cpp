@@ -1,50 +1,51 @@
 #include "kalman_filter.hpp"
 
-KalmanFilter::KalmanFilter() {
-    A_ = Identity3d();
-    B_ = Identity3d();
-    C_ = Identity3d();
-    D_ = Identity3d();
-    P_ = Zero3d();
-    Q_ = Zero3d();
-    R_ = Zero3d();
-    x_ = Vector3d(0.0, 0.0, 0.0);
-    non_linear_state_ = false;
-    non_linear_observe_ = false;
-}
+KalmanFilter::KalmanFilter(double num_state, double num_input, double num_output) : 
+    x_(VectorXd::Zero(num_state)),
+    x_odometry_(VectorXd::Zero(num_state)), 
+    y_odometry_(VectorXd::Zero(num_output)),
+    A_(MatrixXd::Identity(num_state, num_state)),
+    B_(MatrixXd::Zero(num_state, num_input)),
+    C_(MatrixXd::Zero(num_output, num_state)),
+    D_(MatrixXd::Zero(num_output, num_input)),
+    P_(MatrixXd::Zero(num_state, num_state)),
+    Q_(MatrixXd::Zero(num_state, num_state)),
+    R_(MatrixXd::Zero(num_output, num_output)),
+    is_non_linear_state_eq_(false),
+    is_non_linear_observe_eq_(false) {}
 
-void KalmanFilter::InitState(const Vector3d& x) {
+void KalmanFilter::SetState(const VectorXd& x) {
     x_ = x;
 }
 
-void KalmanFilter::SetStateEquation(const Matrix3d& A, const Matrix3d& B) {
+void KalmanFilter::SetStateEquation(const MatrixXd& A, const MatrixXd& B) {
     A_ = A;
     B_ = B;
 }
 
-void KalmanFilter::SetStateEquation(const std::function<Vector3d(const Vector3d&, const Vector3d&)>& eq) {
-    non_linear_state_ = true;
+void KalmanFilter::SetStateEquation(const std::function<VectorXd(const VectorXd&, const VectorXd&)>& eq) {
+    is_non_linear_state_eq_ = true;
     non_linear_state_equation_ = eq;
 }
 
-void KalmanFilter::SetObserveEquation(const Matrix3d& C, const Matrix3d& D) {
+void KalmanFilter::SetObserveEquation(const MatrixXd& C, const MatrixXd& D) {
     C_ = C;
     D_ = D;
 }
 
-void KalmanFilter::SetObserveEquation(const std::function<Vector3d(const Vector3d&, const Vector3d&)>& eq) {
-    non_linear_observe_ = true;
+void KalmanFilter::SetObserveEquation(const std::function<VectorXd(const VectorXd&, const VectorXd&)>& eq) {
+    is_non_linear_observe_eq_ = true;
     non_linear_observe_equation_ = eq;
 }
 
-void KalmanFilter::SetVariance(const Matrix3d& Q, const Matrix3d& R) {
+void KalmanFilter::SetVariance(const MatrixXd& Q, const MatrixXd& R) {
     Q_ = Q;
     R_ = R;
 }
 
-Vector3d KalmanFilter::Apply(const Vector3d& u, const Vector3d& y) {
+VectorXd KalmanFilter::Apply(const VectorXd& u, const VectorXd& y) {
     // update x
-    if (non_linear_state_) {
+    if (is_non_linear_state_eq_) {
         A_ = UpdateJacobian(x_, u, non_linear_state_equation_);   // update A
         x_odometry_ = non_linear_state_equation_(x_, u);
     } else {
@@ -52,52 +53,46 @@ Vector3d KalmanFilter::Apply(const Vector3d& u, const Vector3d& y) {
     }
 
     // update y
-    if(non_linear_observe_) {
+    if(is_non_linear_observe_eq_) {
         C_ = UpdateJacobian(x_odometry_, u, non_linear_observe_equation_);    // update C
         y_odometry_ = non_linear_observe_equation_(x_odometry_, u);
     }else {
         y_odometry_ = C_ * x_odometry_ + D_ * u;
     }
 
-    #ifdef USE_BLA
-    const Matrix3d P_odometry = A_ * P_ * ~A_ + Q_;
-    const Matrix3d K_kalman = P_odometry * ~C_ * (C_ * P_odometry * ~C_ + R_).Inverse();
-    #else
-    const Matrix3d P_odometry = A_ * P_ * A_.transpose() + Q_;
-    const Matrix3d K_kalman = P_odometry * C_.transpose() * (C_ * P_odometry * C_.transpose() + R_).inverse();
-    #endif
-    
+    const MatrixXd P_odometry = A_ * P_ * A_.transpose() + Q_;
+    const MatrixXd K_kalman = P_odometry * C_.transpose() * (C_ * P_odometry * C_.transpose() + R_).inverse();
+
     x_ = x_odometry_ + K_kalman * (y - y_odometry_);
     P_ = (Identity3d() - K_kalman * C_) * P_odometry;
 
     return x_;
 }
 
-Vector3d KalmanFilter::GetOdometryState() const {
+VectorXd KalmanFilter::GetOdometryState() const {
     return x_odometry_;
 }
 
-Vector3d KalmanFilter::GetOdometryOutput() const {
+VectorXd KalmanFilter::GetOdometryOutput() const {
     return y_odometry_;
 }
 
-Matrix3d KalmanFilter::UpdateJacobian(const Vector3d& x, const Vector3d& u, const std::function<Vector3d(const Vector3d&, const Vector3d&)>& f) {
-    Matrix3d jacobian;
+MatrixXd KalmanFilter::UpdateJacobian(const VectorXd& x, const VectorXd& u, const std::function<VectorXd(const VectorXd&, const VectorXd&)>& f) {
+    MatrixXd jacobian = MatrixXd::Zero(f(x, u).size(), x.size());
     const double delta_e = 1e-5;
-    for (int i = 0; i < NUM_STATE; i++) {
+    for (int i = 0; i < x.size(); i++) {
         // +
-        Vector3d x_p = x;
+        VectorXd x_p = x;
         x_p(i) += delta_e;
-        const Vector3d y_p = f(x_p, u);
+        const VectorXd y_p = f(x_p, u);
         // -
-        Vector3d x_m = x;
+        VectorXd x_m = x;
         x_m(i) -= delta_e;
-        const Vector3d y_m = f(x_m, u);
+        const VectorXd y_m = f(x_m, u);
         // center diff
-        const Vector3d d_y = (y_p - y_m) / (2 * delta_e);
-        for (int j = 0; j < NUM_STATE; j++) {
-            jacobian(j, i) = d_y(j);
-        }
+        const VectorXd d_y = (y_p - y_m) / (2 * delta_e);
+        // set to jacobian
+        jacobian.col(i) = d_y;
     }
     return jacobian;
 }
