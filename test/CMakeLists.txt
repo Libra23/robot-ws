@@ -5,3 +5,4 @@ enable_testing()
 
 # subdirectory
 add_subdirectory(algorithm)
+add_subdirectory(gtest)

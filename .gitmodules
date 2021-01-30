@@ -1,9 +1,9 @@
 [submodule "src/eigen"]
 	path = src/eigen
 	url = https://gitlab.com/libeigen/eigen.git
-[submodule "src/gtest"]
-	path = src/gtest
+[submodule "test/gtest"]
+	path = test/gtest
 	url = https://github.com/google/googletest.git
-[submodule "src/matplotlib"]
-	path = src/matplotlib
+[submodule "test/matplotlib"]
+	path = test/matplotlib
 	url = https://github.com/lava/matplotlib-cpp.git
