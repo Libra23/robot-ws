@@ -46,9 +46,9 @@ void IoInterface::UpdateInput(InputState& state) {
         if (serial_servo_state.id < 0) {
             return;
         } else if (serial_servo_state.enable) {
-            serial_servo_state.q = serial_servo_.GetPosition(serial_servo_state.id);
+            serial_servo_state.act_q = serial_servo_.GetPosition(serial_servo_state.id);
         } else {
-            serial_servo_state.q = serial_servo_.FreePosition(serial_servo_state.id);
+            serial_servo_state.act_q = serial_servo_.FreePosition(serial_servo_state.id);
         }
     }
 }
@@ -56,11 +56,11 @@ void IoInterface::UpdateInput(InputState& state) {
 void IoInterface::UpdateOutput(const OutputState& state) {
     // output serial servo
     for(const auto& serial_servo_state : state.serial_servo) {
-        //ESP_LOGI("Io Interface", "id = %d, q = %f", serial_servo_state.id, serial_servo_state.q);
+        //ESP_LOGI("Io Interface", "id = %d, q = %f", serial_servo_state.id, serial_servo_state.act_qq);
         if (serial_servo_state.id < 0) {
             return;
         } else if (serial_servo_state.enable) {
-            serial_servo_.SetPosition(serial_servo_state.id, serial_servo_state.q);
+            serial_servo_.SetPosition(serial_servo_state.id, serial_servo_state.act_q);
         } else {
             serial_servo_.FreePosition(serial_servo_state.id);
         }

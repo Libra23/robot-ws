@@ -103,12 +103,13 @@ void Robot::UpdateRef(RobotOut& out) {
 }
 
 void Robot::ConvertToOutput(const RobotRef& ref, OutputState& output_state) {
-    for (size_t i = 0; i < NUM_ARM; i++) {
-        for (size_t j = 0; j < NUM_JOINT; j++) {
-            const int index = i * NUM_JOINT + j;
-            output_state.serial_servo[index].id = config_.arm_config[i].act.id[j];
-            output_state.serial_servo[index].q = ref.arm[i].q[j] * RAD_TO_DEG;
-            output_state.serial_servo[index].qd = 0.0;
+    for (size_t i = 0; i < arm_.size(); i++) {
+        const ActConfig& act_config = config_.arm_config[i].act;
+        for (size_t j = 0; j < act_config.id.size(); j++) {
+            const int index = i * act_config.id.size() + j;
+            output_state.serial_servo[index].id = act_config.id[j];
+            output_state.serial_servo[index].act_q = act_config.gain[j] * ref.arm[i].q[j] + act_config.offset[j];
+            output_state.serial_servo[index].act_qd = 0.0;
             output_state.serial_servo[index].enable = true;
         }
     }

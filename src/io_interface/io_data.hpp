@@ -8,13 +8,13 @@
 
 struct SerialServoState {
     int8_t id;
-    double q;
-    double qd;
+    double act_q;
+    double act_qd;
     bool enable;
     SerialServoState() : 
         id(-1),
-        q(0.0),
-        qd(0.0),
+        act_q(0.0),
+        act_qd(0.0),
         enable(false) {}
 };
 
