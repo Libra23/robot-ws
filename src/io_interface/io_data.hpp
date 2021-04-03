@@ -4,7 +4,16 @@
 #include <array>
 #include "common/memory.hpp"
 
-#define NUM_SERIAL_SERVO 12
+#define NUM_GPIO            1
+#define NUM_SERIAL_SERVO    12
+
+struct GpioState {
+    int8_t pin;
+    bool level;
+    GpioState() : 
+        pin(-1),
+        level(false) {}
+};
 
 struct SerialServoState {
     int8_t id;
@@ -19,12 +28,14 @@ struct SerialServoState {
 };
 
 struct InputState {
+    std::array<GpioState, NUM_GPIO> gpio;
     std::array<SerialServoState, NUM_SERIAL_SERVO> serial_servo;
     InputState() :
         serial_servo{SerialServoState()} {}
 };
 
 struct OutputState {
+    std::array<GpioState, NUM_GPIO> gpio;
     std::array<SerialServoState, NUM_SERIAL_SERVO> serial_servo;
     OutputState() : 
         serial_servo{SerialServoState()} {}

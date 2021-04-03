@@ -157,7 +157,7 @@ RobotMain::RobotMain() {
 
 void RobotMain::Run() {
     ESP_LOGI("Robot Main", "Run");
-    th_.Start(RobotMain::LaunchThread, "robot_thread", 2, 4096, &robot_, 0);
+    th_.Start(RobotMain::LaunchThread, "robot_thread", 2, 8192, &robot_, 0);
 }
 
 uint32_t RobotMain::StackMargin() {
