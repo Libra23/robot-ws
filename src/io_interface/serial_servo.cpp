@@ -26,36 +26,37 @@ void SerialServo::Config(const SerialServoConfig& config) {
     gpio_handler_.Write(en_pin_, HIGH);
 }
 
-void SerialServo::SetPosition(uint8_t id, double deg) {
+double SerialServo::SetPosition(uint8_t id, double deg) {
     std::vector<uint8_t> tx(3);
     std::vector<uint8_t> rx(3);
     const int value = ConvertToValue(deg);
-    tx.push_back(POSITION_CMD + id);
-    tx.push_back((value >> 7)  & 0x007F);
-    tx.push_back(value & 0x007F);
+    tx[0] = (POSITION_CMD + id);
+    tx[1] = ((value >> 7)  & 0x007F);
+    tx[2] = (value & 0x007F);
     Synchronize(tx, rx);
     const int ret = ((rx[1] << 7) & 0x3F80) + (rx[2] & 0x007F);
+    return ConvertToDeg(ret);
 }
 
 double SerialServo::GetPosition(uint8_t id) {
     std::vector<uint8_t> tx(2);
     std::vector<uint8_t> rx(4);
-    tx.push_back(READ_CMD + id);
-    tx.push_back(ANGLE_SC + 0);
+    tx[0] = (READ_CMD + id);
+    tx[1] = (ANGLE_SC + 0);
     Synchronize(tx, rx);
-    const int value = ((rx[2] << 7) & 0x3F80) + (rx[3] & 0x007F);
-    return ConvertToDeg(value);
+    const int ret = ((rx[2] << 7) & 0x3F80) + (rx[3] & 0x007F);
+    return ConvertToDeg(ret);
 }
 
 double SerialServo::FreePosition(uint8_t id) {
     std::vector<uint8_t> tx(3);
     std::vector<uint8_t> rx(3);
-    tx.push_back(POSITION_CMD + id);
-    tx.push_back(0);
-    tx.push_back(0);
+    tx[0] = (POSITION_CMD + id);
+    tx[1] = (0);
+    tx[2] = (0);
     Synchronize(tx, rx);
-    const int value = ((rx[1] << 7) & 0x3F80) + (rx[2] & 0x007F);
-    return ConvertToDeg(value);
+    const int ret = ((rx[1] << 7) & 0x3F80) + (rx[2] & 0x007F);
+    return ConvertToDeg(ret);
 }
 
 bool SerialServo::Synchronize(const std::vector<uint8_t>& tx, std::vector<uint8_t>& rx) {
@@ -65,11 +66,9 @@ bool SerialServo::Synchronize(const std::vector<uint8_t>& tx, std::vector<uint8_
     uart_handler_.WaitTransmit();
 
     // receive
-    //uart_handler_.FlushReceive();
+    uart_handler_.FlushReceive();
     gpio_handler_.Write(en_pin_, LOW);  // change mode to receive
-    // while(!(uart_handler_.Available() > 0));
-    //uart_handler_.ReadBytes(rx);
-
+    uart_handler_.ReadBytes(rx);
     return false;
 }
 

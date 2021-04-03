@@ -3,8 +3,8 @@
 /**
  * @brief Global parameter
  */
-extern ShareMemory<OutputState> output_memory_;
-extern ShareMemory<InputState> input_memory_;
+extern ShareMemory<OutputState> output_memory_; //!< defined at io_interface
+extern ShareMemory<InputState> input_memory_;   //!< defined at io_interface
 
 /**
  * @class Robot
@@ -23,15 +23,15 @@ void Robot::Thread() {
 
     while(true) {
         // input
-
+        
         // set ref
         RobotRef ref;
         GetDefaultRef(ref);
 
         // output
-        OutputState output_state;
-        ConvertToOutput(ref, output_state);
-        output_memory_.Write(output_state);
+        OutputState output;
+        ConvertOutput(ref, output);
+        output_memory_.Write(output);
         delay(10);
     }
 }
@@ -102,15 +102,23 @@ void Robot::UpdateRef(RobotOut& out) {
     }
 }
 
-void Robot::ConvertToOutput(const RobotRef& ref, OutputState& output_state) {
+void Robot::ConvertInput(const InputState& input, RobotState& state) {
+    for (size_t i = 0; i < arm_.size(); i++) {
+        const ActConfig& act_config = config_.arm_config[i].act;
+        for (size_t j = 0; j < act_config.id.size(); j++) {
+        }
+    }
+}
+
+void Robot::ConvertOutput(const RobotRef& ref, OutputState& output) {
     for (size_t i = 0; i < arm_.size(); i++) {
         const ActConfig& act_config = config_.arm_config[i].act;
         for (size_t j = 0; j < act_config.id.size(); j++) {
             const int index = i * act_config.id.size() + j;
-            output_state.serial_servo[index].id = act_config.id[j];
-            output_state.serial_servo[index].act_q = act_config.gain[j] * ref.arm[i].q[j] + act_config.offset[j];
-            output_state.serial_servo[index].act_qd = 0.0;
-            output_state.serial_servo[index].enable = true;
+            output.serial_servo[index].id = act_config.id[j];
+            output.serial_servo[index].act_q = act_config.gain[j] * ref.arm[i].q[j] + act_config.offset[j];
+            output.serial_servo[index].act_qd = 0.0;
+            output.serial_servo[index].enable = true;
         }
     }
 }

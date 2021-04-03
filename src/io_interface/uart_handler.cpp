@@ -1,13 +1,12 @@
 #include "uart_handler.hpp"
 #include "driver/uart.h"
 #include "freertos/FreeRTOS.h"
+#include "esp_log.h"
 /**
  * @class UartHandler
  */
 UartHandler::UartHandler() {
-    // initialize default settings
-    UartConfig config;
-    Config(config);
+    ESP_LOGI("UartHandler", "Constructor");
 }
 
 void UartHandler::Config(const UartConfig& config) {

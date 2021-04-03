@@ -23,7 +23,8 @@ class Robot {
     void CreateConfig(RobotConfig& config);
     void UpdateState(RobotState& state);
     void UpdateRef(RobotOut& out);
-    void ConvertToOutput(const RobotRef& ref, OutputState& output_state);
+    void ConvertOutput(const RobotRef& ref, OutputState& output);
+    void ConvertInput(const InputState& input, RobotState& state);
     void GetDefaultRef(RobotRef& ref);
     static Vector3d GetDefaultJoint(const ArmId& id);
     std::array<Arm, NUM_ARM> arm_;

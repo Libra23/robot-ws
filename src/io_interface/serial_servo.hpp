@@ -47,7 +47,7 @@ class SerialServo {
 
     SerialServo();
     void Config(const SerialServoConfig& config);
-    void SetPosition(uint8_t id, double deg);
+    double SetPosition(uint8_t id, double deg);
     double GetPosition(uint8_t id);
     double FreePosition(uint8_t id);
     void Passive(int8_t id);

@@ -4,7 +4,7 @@
  * @class GpioHandler
  */
 GpioHandler::GpioHandler() {
-    // ESP_LOGI("GpioHandler", "Constructor");
+    ESP_LOGI("GpioHandler", "Constructor");
 }
 
 void GpioHandler::Config(const GpioConfig& config) {

@@ -22,10 +22,9 @@ void IoInterface::Thread() {
 
     // main loop
     while(true) {
-        OutputState output_state_out;
-        //ESP_LOGI("Io Interface", "en_pin = %d", config_.serial_servo.en_pin);
-        output_memory_.Read(output_state_out);
-        UpdateOutput(output_state_out);
+        OutputState output;
+        output_memory_.Read(output);
+        UpdateOutput(output);
         delay(10);
     }
 }
@@ -36,8 +35,10 @@ void IoInterface::CreateConfig(IoInterfaceConfig& config) {
     config.serial_servo.tx_pin = 23;
     config.serial_servo.rx_pin = 19;
     config.serial_servo.en_pin = 33;
+    //config.serial_servo.baud_rate = 1250000;
+    //config.serial_servo.baud_rate = 625000;
     config.serial_servo.baud_rate = 115200;
-    config.serial_servo.time_out_ms = 50;
+    config.serial_servo.time_out_ms = 10;
 }
 
 void IoInterface::UpdateInput(InputState& state) {
@@ -45,10 +46,9 @@ void IoInterface::UpdateInput(InputState& state) {
     for(auto& serial_servo_state : state.serial_servo) {
         if (serial_servo_state.id < 0) {
             return;
-        } else if (serial_servo_state.enable) {
-            serial_servo_state.act_q = serial_servo_.GetPosition(serial_servo_state.id);
         } else {
-            serial_servo_state.act_q = serial_servo_.FreePosition(serial_servo_state.id);
+            serial_servo_state.act_q = serial_servo_.GetPosition(serial_servo_state.id);
+            // serial_servo_state.act_q = serial_servo_.FreePosition(serial_servo_state.id);
         }
     }
 }
@@ -56,13 +56,14 @@ void IoInterface::UpdateInput(InputState& state) {
 void IoInterface::UpdateOutput(const OutputState& state) {
     // output serial servo
     for(const auto& serial_servo_state : state.serial_servo) {
-        //ESP_LOGI("Io Interface", "id = %d, q = %f", serial_servo_state.id, serial_servo_state.act_qq);
         if (serial_servo_state.id < 0) {
             return;
         } else if (serial_servo_state.enable) {
             serial_servo_.SetPosition(serial_servo_state.id, serial_servo_state.act_q);
+            //ESP_LOGI("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
         } else {
-            serial_servo_.FreePosition(serial_servo_state.id);
+            double act_q = serial_servo_.FreePosition(serial_servo_state.id);
+            // ESP_LOGI("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, act_q);
         }
     }
 }
@@ -76,7 +77,7 @@ IoInterfaceMain::IoInterfaceMain() {
 
 void IoInterfaceMain::Run() {
     ESP_LOGI("Io Interface Main", "Run");
-    th_.Start(IoInterfaceMain::LaunchThread, "io_thread", 5, 4096, &io_interface_, 1);
+    th_.Start(IoInterfaceMain::LaunchThread, "io_thread", 2, 4096, &io_interface_, 1);
 }
 
 void IoInterfaceMain::LaunchThread(void* arg) {
