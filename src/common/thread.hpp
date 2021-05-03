@@ -16,5 +16,7 @@ class Thread {
 };
 
 void delay(uint32_t ms);
+int64_t get_time_us();
+int64_t get_time_ms();
 
 #endif

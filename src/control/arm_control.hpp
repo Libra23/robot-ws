@@ -38,12 +38,12 @@ class Arm {
     void Config(const ArmConfig& config, const VectorXd& init_q);
     void ForwardKinematic(const VectorXd& q, const Affine3d& base_trans, Affine3d& trans);
     bool InverseKinematic(const Affine3d& trans, const Affine3d& base_trans, bool& is_joint_limit, VectorXd& q);
+    void ConvertToAct(const VectorXd& q, VectorXd& act_q);
+    void ConvertToJoint(const VectorXd& act_q, VectorXd& q);
     private:
     ArmConfig config_;
     Kinematic kinematic_;
     VectorXd q_pre_;    
-    void ConvertToAct(const VectorXd& q, VectorXd& act_q);
-    void ConvertToJoint(const VectorXd& act_q, VectorXd& q);
     bool LimitJoint(VectorXd& q);
 };
 

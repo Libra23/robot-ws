@@ -4,6 +4,33 @@
 #include "algorithm/math_utility.hpp"
 #include <array>
 
+// Robot Type
+#define QUAD_DIAGONAL (100)
+#define QUAD_JUMP (110)
+
+// #define ROBOT_TYPE QUAD_DIAGONAL
+#define ROBOT_TYPE QUAD_JUMP
+
+inline int GetRobotType() {
+    return ROBOT_TYPE;
+}
+
+inline bool IsQuadDiagonal() {
+    if (GetRobotType() == QUAD_DIAGONAL) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+inline bool IsQuadJump() {
+    if (GetRobotType() == QUAD_JUMP) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 #define NUM_JOINT 3
 
 enum ArmId {
