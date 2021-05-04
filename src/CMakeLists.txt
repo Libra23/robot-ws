@@ -10,13 +10,15 @@ if(${ESP_PLATFORM})
     add_subdirectory(common)
     add_subdirectory(control)
     add_subdirectory(io_interface)
+    add_subdirectory(kinematics)
     # register library
-    target_link_libraries(${COMPONENT_LIB} algorithm common control io_interface)
+    target_link_libraries(${COMPONENT_LIB} algorithm common control io_interface kinematics)
 else()
     # create excute object
     add_executable(main.out main.cpp)
     # subdirectory
     add_subdirectory(algorithm)
+    add_subdirectory(kinematics)
     # register library
-    target_link_libraries(main.out algorithm)
+    target_link_libraries(main.out algorithm kinematics)
 endif()

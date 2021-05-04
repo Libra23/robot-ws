@@ -1,15 +1,14 @@
-#include "kinematic.hpp"
-#include "math_utility.hpp"
+#include "kinematic_base.hpp"
 
-Kinematic::Kinematic(uint8_t num_joint) : 
+KinematicBase::KinematicBase(uint8_t num_joint) : 
     model_(num_joint) {}
 
-void Kinematic::Config(const KinematicModel& model, uint8_t num_ik_max) {
+void KinematicBase::Config(const KinematicModel& model, uint8_t num_ik_max) {
     model_ = model;
     num_ik_max_ = num_ik_max;
 }
 
-void Kinematic::Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d& tip_trans){
+void KinematicBase::Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d& tip_trans) {
     tip_trans = base_trans;
     for (size_t i = 0; i < q.size(); i++) {
         Affine3d trans = CvtModelToTrans(model_.xyz[i], model_.axis[i], model_.type[i], q(i));
@@ -19,7 +18,7 @@ void Kinematic::Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d&
     tip_trans = tip_trans * end_trans;
 }
 
-bool Kinematic::Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, const VectorXd& init_q, VectorXd& q){
+bool KinematicBase::Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, const VectorXd& init_q, VectorXd& q) {
     Affine3d tip_trans_d;
     VectorXd q_d = init_q;
     Forward(q_d, base_trans, tip_trans_d);
@@ -46,7 +45,7 @@ bool Kinematic::Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, c
     return true;
  }
 
-Affine3d Kinematic::CvtModelToTrans(const std::array<double, 3>& xyz, const std::array<double, 3>& axis, JointType type, double q) {
+Affine3d KinematicBase::CvtModelToTrans(const std::array<double, 3>& xyz, const std::array<double, 3>& axis, JointType type, double q) {
     Affine3d trans;
     if (type == ROTATE) {
         trans.translation() = Vector3d(xyz.data());
@@ -57,7 +56,7 @@ Affine3d Kinematic::CvtModelToTrans(const std::array<double, 3>& xyz, const std:
     return trans;
 }
 
-MatrixXd Kinematic::GetJacobian(const VectorXd& q,const Affine3d& base_trans, const Affine3d& tip_trans) {
+MatrixXd KinematicBase::GetJacobian(const VectorXd& q,const Affine3d& base_trans, const Affine3d& tip_trans) {
     MatrixXd jacobian = MatrixXd::Zero(6, q.size());
     const double delta_q = 1e-5;
     for (int i = 0; i < q.size(); i++) {
@@ -74,7 +73,7 @@ MatrixXd Kinematic::GetJacobian(const VectorXd& q,const Affine3d& base_trans, co
     return jacobian;
 }
 
-MatrixXd Kinematic::SingularityLowSensitiveInverse(const MatrixXd& jacobian) {
+MatrixXd KinematicBase::SingularityLowSensitiveInverse(const MatrixXd& jacobian) {
     MatrixXd jacobian_plus;
     const MatrixXd& jacobian_t = jacobian.transpose();
     jacobian_plus = jacobian_t * (jacobian * jacobian_t + 0.01 * MatrixXd::Identity(jacobian.rows(), jacobian.rows())).inverse();

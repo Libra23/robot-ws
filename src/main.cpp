@@ -1,8 +1,8 @@
 #include <iostream>
-#include "algorithm/kinematic.hpp"
+#include "kinematics/kinematic_base.hpp"
 
 int main () {
     std::cout << "Hello!" << std::endl;
-    Kinematic kinematic(3);
+    KinematicBase kinematic(3);
     return 0;
 }

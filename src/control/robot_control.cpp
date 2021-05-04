@@ -40,49 +40,107 @@ void Robot::CreateConfig(RobotConfig& config) {
     config.cog = {{0.0, 0.0, 0.0}};
     // arm model
     ArmConfig arm_config;
-    arm_config.model.xyz =  {{
-                            {{27.5, 47.63, 0.0}},   // Yaw
-                            {{33.25, 0.0, 0.0}},    // Pitch1
-                            {{60.0, 0.0, 0.0}},     // Pitch2
-                            {{120.0, 0.0, 0.0}},    // Tip
-                            }};
-    arm_config.model.axis = {{
-                            {{0.0, 0.0, 1.0}},      // Yaw
-                            {{0.0, 1.0, 0.0}},      // Pitch1
-                            {{0.0, 1.0, 0.0}},      // Pitch2
-                            {{0.0, 0.0, 0.0}},      // Tip
-                            }};
-    arm_config.model.type = {{ROTATE, ROTATE, ROTATE, FIXED}};
 
-    // LEFT FRONT
-    arm_config.joint.q_min = {{0.0, -60.0, 0.0}};
-    arm_config.joint.q_max = {{90.0, 75.0, 150.0}};
-    arm_config.act.id = {{0, 1, 2}};
-    arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
-    arm_config.act.offset = {{60.0, 0.0, -90.0}};
-    config.arm_config[LEFT_FRONT] = arm_config;
-    // LEFT BACK
-    arm_config.joint.q_min = {{90.0, -60.0, 0.0}};
-    arm_config.joint.q_max = {{180.0, 75.0, 150.0}};
-    arm_config.act.id = {{3, 4, 5}};
-    arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
-    arm_config.act.offset = {{120.0, 0.0, -90.0}};
-    config.arm_config[LEFT_BACK] = arm_config;
-    // RIGHT FRONT
-    arm_config.joint.q_min = {{-90.0, -60.0, 0.0}};
-    arm_config.joint.q_max = {{0.0, 75.0, 150.0}};
-    arm_config.act.id = {{6, 7, 8}};
-    arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
-    arm_config.act.offset = {{-60.0, 0.0, -90.0}};
-    config.arm_config[RIGHT_FRONT] = arm_config;
-    // RIGHT BACK
-    arm_config.model.type = {{ROTATE, ROTATE, ROTATE, FIXED}};
-    arm_config.joint.q_min = {{-180.0, -60.0, 0.0}};
-    arm_config.joint.q_max = {{-90.0, 75.0, 150.0}};
-    arm_config.act.id = {{9, 10, 11}};
-    arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
-    arm_config.act.offset = {{-120.0, 0.0, -90.0}};
-    config.arm_config[RIGHT_BACK] = arm_config;
+    if (IsQuadDiagonal()) {
+        arm_config.model.xyz =  {{
+                                {{27.5, 47.63, 0.0}},   // Yaw
+                                {{33.25, 0.0, 0.0}},    // Pitch1
+                                {{60.0, 0.0, 0.0}},     // Pitch2
+                                {{120.0, 0.0, 0.0}},    // Tip
+                                }};
+        arm_config.model.axis = {{
+                                {{0.0, 0.0, 1.0}},      // Yaw
+                                {{0.0, 1.0, 0.0}},      // Pitch1
+                                {{0.0, 1.0, 0.0}},      // Pitch2
+                                {{0.0, 0.0, 0.0}},      // Tip
+                                }};
+        arm_config.model.type = {{ROTATE, ROTATE, ROTATE, FIXED}};
+
+        // LEFT FRONT
+        arm_config.joint.q_min = {{0.0, -60.0, 0.0}};
+        arm_config.joint.q_max = {{90.0, 75.0, 150.0}};
+        arm_config.act.id = {{0, 1, 2}};
+        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.offset = {{60.0, 0.0, -90.0}};
+        config.arm_config[LEFT_FRONT] = arm_config;
+        // LEFT BACK
+        arm_config.joint.q_min = {{90.0, -60.0, 0.0}};
+        arm_config.joint.q_max = {{180.0, 75.0, 150.0}};
+        arm_config.act.id = {{3, 4, 5}};
+        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.offset = {{120.0, 0.0, -90.0}};
+        config.arm_config[LEFT_BACK] = arm_config;
+        // RIGHT FRONT
+        arm_config.joint.q_min = {{-90.0, -60.0, 0.0}};
+        arm_config.joint.q_max = {{0.0, 75.0, 150.0}};
+        arm_config.act.id = {{6, 7, 8}};
+        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.offset = {{-60.0, 0.0, -90.0}};
+        config.arm_config[RIGHT_FRONT] = arm_config;
+        // RIGHT BACK
+        arm_config.joint.q_min = {{-180.0, -60.0, 0.0}};
+        arm_config.joint.q_max = {{-90.0, 75.0, 150.0}};
+        arm_config.act.id = {{9, 10, 11}};
+        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.offset = {{-120.0, 0.0, -90.0}};
+        config.arm_config[RIGHT_BACK] = arm_config;
+
+    } else if (IsQuadPupper()) {
+        arm_config.model.axis = {{
+                                {{1.0, 0.0, 0.0}},      // Roll
+                                {{0.0, 1.0, 0.0}},      // Pitch1
+                                {{0.0, 1.0, 0.0}},      // Pitch2
+                                {{1.0, 0.0, 0.0}},      // Tip
+                                }};
+        arm_config.model.type = {{ROTATE, ROTATE, ROTATE, FIXED}};
+
+        // LEFT FRONT
+        arm_config.model.xyz =  {{
+                                {{54.75, 36.25, 0.0}},  // Roll
+                                {{0.0, 39.0, 0.0}},     // Pitch1
+                                {{0.0, 0.0, -60.0}},    // Pitch2
+                                {{0.0, 0.0, -60.0}},    // Tip
+                                }};
+        arm_config.act.id = {{0, 1, 2}};
+        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.offset = {{60.0, 0.0, -90.0}};
+        config.arm_config[LEFT_FRONT] = arm_config;
+        // LEFT BACK
+        arm_config.model.xyz =  {{
+                                {{-54.75, 36.25, 0.0}},  // Roll
+                                {{0.0, 39.0, 0.0}},      // Pitch1
+                                {{0.0, 0.0, -60.0}},     // Pitch2
+                                {{0.0, 0.0, -60.0}},     // Tip
+                                }};
+        arm_config.act.id = {{3, 4, 5}};
+        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.offset = {{120.0, 0.0, -90.0}};
+        config.arm_config[LEFT_BACK] = arm_config;
+        // RIGHT FRONT
+        arm_config.model.xyz =  {{
+                                {{54.75, -36.25, 0.0}}, // Roll
+                                {{0.0, -39.0, 0.0}},    // Pitch1
+                                {{0.0, 0.0, -60.0}},    // Pitch2
+                                {{0.0, 0.0, -60.0}},    // Tip
+                                }};
+        arm_config.joint.q_min = {{-90.0, -60.0, 0.0}};
+        arm_config.joint.q_max = {{90.0, 75.0, 150.0}};
+        arm_config.act.id = {{6, 7, 8}};
+        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.offset = {{-60.0, 0.0, -90.0}};
+        config.arm_config[RIGHT_FRONT] = arm_config;
+        // RIGHT BACK
+        arm_config.model.xyz =  {{
+                                {{-54.75, -36.25, 0.0}}, // Roll
+                                {{0.0, -39.0, 0.0}},     // Pitch1
+                                {{0.0, 0.0, -60.0}},     // Pitch2
+                                {{0.0, 0.0, -60.0}},     // Tip
+                                }};
+        arm_config.act.id = {{9, 10, 11}};
+        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.offset = {{-120.0, 0.0, -90.0}};
+        config.arm_config[RIGHT_BACK] = arm_config;
+    }
 }
 
 void Robot::UpdateState(RobotState& state) {

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "kinematic.hpp"
+#include "kinematic_base.hpp"
 
 constexpr double TOLERANCE = 0.1;
 
@@ -23,7 +23,7 @@ class KinematicTest : public ::testing::Test {
         model_.type = {{ROTATE, ROTATE, ROTATE, FIXED}};
         kinematic_.Config(model_, 50);
     }
-    Kinematic kinematic_;
+    KinematicBase kinematic_;
     KinematicModel model_;
 };
 

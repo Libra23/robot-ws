@@ -1,8 +1,8 @@
-#ifndef KINEMATIC_H
-#define KINEMATIC_H
+#ifndef KINEMATIC_BASE_H
+#define KINEMATIC_BASE_H
 
-#include "math_const.hpp"
-#include "math_utility.hpp"
+#include "algorithm/math_const.hpp"
+#include "algorithm/math_utility.hpp"
 #include <vector>
 #include <array>
 
@@ -22,18 +22,21 @@ struct KinematicModel {
         type(num_joint + 1) {}
 };
 
-class Kinematic {
+class KinematicBase {
     public:
-    Kinematic(uint8_t num_joint);
+    KinematicBase(uint8_t num_joint);
     void Config(const KinematicModel& model, uint8_t num_ik_max = 20);
-    void Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d& tip_trans);
-    bool Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, const VectorXd& init_q, VectorXd& q);
+    virtual void Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d& tip_trans);
+    virtual bool Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, const VectorXd& init_q, VectorXd& q);
+
+    protected:
+    KinematicModel model_;
+    Affine3d CvtModelToTrans(const std::array<double, 3>& xyz, const std::array<double, 3>& axis, JointType type, double q);
 
     private:
-    KinematicModel model_;
     uint8_t num_ik_max_;
-    Affine3d CvtModelToTrans(const std::array<double, 3>& xyz, const std::array<double, 3>& axis, JointType type, double q);
     MatrixXd GetJacobian(const VectorXd& q, const Affine3d& base_trans, const Affine3d& tip_trans);
     MatrixXd SingularityLowSensitiveInverse(const MatrixXd& jacobian);
 };
+
 #endif

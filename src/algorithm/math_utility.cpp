@@ -68,3 +68,7 @@ Vector6d Differentiate(const Affine3d& trans, const Affine3d& trans_pre, double 
     twist.tail(RPY) = angular_velocity;
     return twist;
 }
+
+Vector3d Differentiate(const Vector3d& pos, const Vector3d& pos_pre, double dt) {
+    return (pos - pos_pre) / dt;
+}

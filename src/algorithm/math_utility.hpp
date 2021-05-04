@@ -16,5 +16,6 @@ Matrix3d MatrixFromRpy(const Vector3d& rpy);
 Vector3d Rpy(const Matrix3d& m);
 Vector3d Rpy(const Vector3d& v, const Vector3d& v_pre);
 Vector6d Differentiate(const Affine3d& trans, const Affine3d& trans_pre, double dt);
+Vector3d Differentiate(const Vector3d& pos, const Vector3d& pos_pre, double dt);
 
 #endif

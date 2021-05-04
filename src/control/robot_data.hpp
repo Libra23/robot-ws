@@ -6,10 +6,10 @@
 
 // Robot Type
 #define QUAD_DIAGONAL (100)
-#define QUAD_JUMP (110)
+#define QUAD_PUPPER (110)
 
-// #define ROBOT_TYPE QUAD_DIAGONAL
-#define ROBOT_TYPE QUAD_JUMP
+//#define ROBOT_TYPE QUAD_DIAGONAL
+#define ROBOT_TYPE QUAD_PUPPER
 
 inline int GetRobotType() {
     return ROBOT_TYPE;
@@ -23,8 +23,8 @@ inline bool IsQuadDiagonal() {
     }
 }
 
-inline bool IsQuadJump() {
-    if (GetRobotType() == QUAD_JUMP) {
+inline bool IsQuadPupper() {
+    if (GetRobotType() == QUAD_PUPPER) {
         return true;
     } else {
         return false;
