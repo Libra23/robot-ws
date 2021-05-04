@@ -2,7 +2,7 @@
 #define ARM_CONTROLLER_H
 
 #include "algorithm/math_const.hpp"
-#include "algorithm/kinematic.hpp"
+#include "kinematics/kinematic_base.hpp"
 #include "robot_data.hpp"
 
 struct JointConfig {
@@ -42,7 +42,7 @@ class Arm {
     void ConvertToJoint(const VectorXd& act_q, VectorXd& q);
     private:
     ArmConfig config_;
-    Kinematic kinematic_;
+    KinematicBase kinematic_;
     VectorXd q_pre_;    
     bool LimitJoint(VectorXd& q);
 };
