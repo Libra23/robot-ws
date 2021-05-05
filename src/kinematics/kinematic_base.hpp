@@ -16,15 +16,17 @@ struct KinematicModel {
     std::vector<std::array<double, XYZ>> xyz;
     std::vector<std::array<double, XYZ>> axis;
     std::vector<JointType> type;
+    KinematicModel() {};
     KinematicModel(uint8_t num_joint) : 
         xyz(num_joint + 1),
         axis(num_joint + 1),
-        type(num_joint + 1) {}
+        type(num_joint + 1) {};
 };
 
 class KinematicBase {
     public:
     KinematicBase(uint8_t num_joint);
+    virtual ~KinematicBase();
     void Config(const KinematicModel& model, uint8_t num_ik_max = 20);
     virtual void Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d& tip_trans);
     virtual bool Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, const VectorXd& init_q, VectorXd& q);

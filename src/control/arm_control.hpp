@@ -3,7 +3,9 @@
 
 #include "algorithm/math_const.hpp"
 #include "kinematics/kinematic_base.hpp"
+#include "kinematics/pupper_kinematic.hpp"
 #include "robot_data.hpp"
+#include <memory>
 
 struct JointConfig {
     std::vector<double> q_min;
@@ -42,7 +44,7 @@ class Arm {
     void ConvertToJoint(const VectorXd& act_q, VectorXd& q);
     private:
     ArmConfig config_;
-    KinematicBase kinematic_;
+    std::unique_ptr<KinematicBase> kinematic_;
     VectorXd q_pre_;    
     bool LimitJoint(VectorXd& q);
 };

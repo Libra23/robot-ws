@@ -3,6 +3,10 @@
 KinematicBase::KinematicBase(uint8_t num_joint) : 
     model_(num_joint) {}
 
+KinematicBase::~KinematicBase() {
+
+}
+
 void KinematicBase::Config(const KinematicModel& model, uint8_t num_ik_max) {
     model_ = model;
     num_ik_max_ = num_ik_max;

@@ -15,6 +15,7 @@ class PupperKinematic : public KinematicBase {
     PupperKinematic();
     void Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d& tip_trans) override;
     bool Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, const VectorXd& init_q, VectorXd& q) override;
+    static KinematicModel CreatePupperModel(const std::vector<std::array<double, XYZ>> xyz);
     private:
     VectorXd ConvertToCoupleJoint(const VectorXd& q);
     VectorXd ConvertFromCoupleJoint(const VectorXd& q_couple);
