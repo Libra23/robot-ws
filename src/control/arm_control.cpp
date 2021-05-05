@@ -1,17 +1,18 @@
 #include "arm_control.hpp"
 
-Arm::Arm() : 
-    kinematic_(new KinematicBase(NUM_JOINT)){}
+Arm::Arm() {
+    if(IsQuadPupper()) {
+        kinematic_.reset(new PupperKinematic());
+    } else {
+        kinematic_.reset(new KinematicBase());
+    }
+}
 
 void Arm::Config(const ArmConfig& config, const VectorXd& init_q) {
     config_ = config;
     for (int i = 0; i < init_q.size(); i++) {
         config_.joint.q_min[i] *= DEG_TO_RAD;
         config_.joint.q_max[i] *= DEG_TO_RAD;
-    }
-
-    if(IsQuadPupper()) {
-        kinematic_.reset(new PupperKinematic());
     }
     kinematic_->Config(config_.model, 30);
     q_pre_ = init_q;

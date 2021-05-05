@@ -72,3 +72,12 @@ Vector6d Differentiate(const Affine3d& trans, const Affine3d& trans_pre, double 
 Vector3d Differentiate(const Vector3d& pos, const Vector3d& pos_pre, double dt) {
     return (pos - pos_pre) / dt;
 }
+
+double Square(double x) {
+    x = fmod(x, 2 * PI);
+    if (x < PI) {
+        return 1.0;
+    } else {
+        return -1.0;
+    }
+}

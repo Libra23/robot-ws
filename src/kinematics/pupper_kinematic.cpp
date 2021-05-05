@@ -1,7 +1,7 @@
 #include "pupper_kinematic.hpp"
 #include <iostream>
 
-PupperKinematic::PupperKinematic() : KinematicBase(NUM_PUPPER_JOINT) {
+PupperKinematic::PupperKinematic() : KinematicBase() {
 
 }
 
@@ -31,8 +31,8 @@ bool PupperKinematic::Inverse(const Affine3d& tip_trans, const Affine3d& base_tr
 
     const double sin_beta = -l_pitch2_tip / l_pitch1_tip * sin(acos(cos_gamma));
     if (fabs(sin_beta) > 1) return false;
-    q_joint[PUPPER_PITCH1] = atan2(lz, x) - asin(sin_beta);
-    
+    q_joint[PUPPER_PITCH1] = atan2(x, lz) + asin(sin_beta);
+
     q = ConvertToCoupleJoint(q_joint);
     return true;
 }

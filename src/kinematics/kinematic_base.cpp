@@ -1,7 +1,6 @@
 #include "kinematic_base.hpp"
 
-KinematicBase::KinematicBase(uint8_t num_joint) : 
-    model_(num_joint) {}
+KinematicBase::KinematicBase() {}
 
 KinematicBase::~KinematicBase() {
 

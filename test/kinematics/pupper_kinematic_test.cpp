@@ -27,7 +27,7 @@ PupperKinematicTest::PupperKinematicTest() {
  */
 TEST_F(PupperKinematicTest, ForwardKinematic) {
     VectorXd q(NUM_PUPPER_JOINT);
-    q << 0.0, 45.0, -45.0;
+    q << 0.0, 30.0, -30.0;
     q *= DEG_TO_RAD;
     Affine3d tip_trans = Affine3d::Identity();
     kinematic_->Forward(q, Affine3d::Identity(), tip_trans);
@@ -42,7 +42,7 @@ TEST_F(PupperKinematicTest, ForwardKinematic) {
 TEST_F(PupperKinematicTest, CheckInverseKinematic) {
     // prepare q
     VectorXd q_expect(NUM_PUPPER_JOINT);
-    q_expect << 0.0, 45.0, -45.0;
+    q_expect << 0.0, 30.0, -30.0;
     q_expect *= DEG_TO_RAD;
     // set tip_trans
     Affine3d tip_trans_expect = Affine3d::Identity();

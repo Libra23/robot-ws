@@ -21,18 +21,25 @@ void Robot::Thread() {
         arm_[i].Config(config_.arm_config[i], GetDefaultJoint(static_cast<ArmId>(i)));
     }
 
+    int count_ms = 0;
     while(true) {
         // input
         
         // set ref
         RobotRef ref;
+        bool is_limit;
         GetDefaultRef(ref);
+        ref.arm[RIGHT_FRONT].trans.translation()[Z] += 20 * sin(2 * PI * 1.8 * count_ms * 1e-3);
+        for (size_t i = 0; i < arm_.size(); i++) {
+            arm_[i].InverseKinematic(ref.arm[i].trans, ref.body.trans, is_limit, ref.arm[i].q);
+        }
 
         // output
         OutputState output;
         ConvertOutput(ref, output);
         output_memory_.Write(output);
         delay(10);
+        count_ms += 10;
     }
 }
 
@@ -101,7 +108,7 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},    // Pitch2
                                 {{0.0, 0.0, -60.0}},    // Tip
                                 }};
-        arm_config.act.id = {{0, 1, 2}};
+        arm_config.act.id = {{-1, -1, -1}};
         arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
         arm_config.act.offset = {{60.0, 0.0, -90.0}};
         config.arm_config[LEFT_FRONT] = arm_config;
@@ -112,7 +119,7 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},     // Pitch2
                                 {{0.0, 0.0, -60.0}},     // Tip
                                 }};
-        arm_config.act.id = {{3, 4, 5}};
+        arm_config.act.id = {{-1, -1, -1}};
         arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
         arm_config.act.offset = {{120.0, 0.0, -90.0}};
         config.arm_config[LEFT_BACK] = arm_config;
@@ -123,11 +130,11 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},    // Pitch2
                                 {{0.0, 0.0, -60.0}},    // Tip
                                 }};
-        arm_config.joint.q_min = {{-90.0, -60.0, 0.0}};
-        arm_config.joint.q_max = {{90.0, 75.0, 150.0}};
+        arm_config.joint.q_min = {{-90.0, 0.0, -180.0}};
+        arm_config.joint.q_max = {{90.0, 180.0, 0.0}};
         arm_config.act.id = {{6, 7, 8}};
-        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
-        arm_config.act.offset = {{-60.0, 0.0, -90.0}};
+        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, -RAD_TO_DEG}};
+        arm_config.act.offset = {{0.0, -90.0, -90.0}};
         config.arm_config[RIGHT_FRONT] = arm_config;
         // RIGHT BACK
         arm_config.model.xyz =  {{
@@ -136,7 +143,7 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},     // Pitch2
                                 {{0.0, 0.0, -60.0}},     // Tip
                                 }};
-        arm_config.act.id = {{9, 10, 11}};
+        arm_config.act.id = {{-1, -1, -1}};
         arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
         arm_config.act.offset = {{-120.0, 0.0, -90.0}};
         config.arm_config[RIGHT_BACK] = arm_config;
@@ -199,7 +206,11 @@ Vector3d Robot::GetDefaultJoint(const ArmId& id) {
     } else if (id == LEFT_BACK) {
         q_deg = Vector3d(150.0, 45.0, 45.0);
     } else if (id == RIGHT_FRONT) {
-        q_deg = Vector3d(-60.0, 45.0, 45.0);
+        if(IsQuadPupper()) {
+            q_deg = Vector3d(0.0, 45.0, -45.0);
+        } else {
+            q_deg = Vector3d(-60.0, 45.0, 45.0);
+        }
     } else if (id == RIGHT_BACK) {
         q_deg = Vector3d(-150.0, 45.0, 45.0);
     }

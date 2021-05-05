@@ -29,7 +29,7 @@ struct ArmConfig {
     JointConfig joint;
     ActConfig act;
     ArmConfig() : 
-        model(KinematicModel(NUM_JOINT)),
+        model(KinematicModel()),
         joint(JointConfig()),
         act(ActConfig()) {}
 };

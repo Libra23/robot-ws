@@ -5,9 +5,7 @@ constexpr double TOLERANCE = 0.1;
 
 class KinematicTest : public ::testing::Test {
     protected:
-    KinematicTest() : 
-    kinematic_(3),
-    model_(3) {
+    KinematicTest() {
         model_.xyz = {{
                 {{27.5, 47.63, 0.0}},   // Yaw
                 {{33.25, 0.0, 0.0}},    // Pitch1

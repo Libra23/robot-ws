@@ -55,13 +55,13 @@ void IoInterface::UpdateOutput(const OutputState& state) {
     // output serial servo
     for(const auto& serial_servo_state : state.serial_servo) {
         if (serial_servo_state.id < 0) {
-            return;
+            // do nothing
         } else if (serial_servo_state.enable) {
             double act_q = serial_servo_.SetPosition(serial_servo_state.id, serial_servo_state.act_q);
-            // ESP_LOGI("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, act_q);
+            //ESP_LOGI("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
         } else {
             double act_q = serial_servo_.FreePosition(serial_servo_state.id);
-            // ESP_LOGI("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, act_q);
+            //ESP_LOGI("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
         }
     }
 }
