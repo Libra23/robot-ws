@@ -73,11 +73,16 @@ Vector3d Differentiate(const Vector3d& pos, const Vector3d& pos_pre, double dt) 
     return (pos - pos_pre) / dt;
 }
 
-double Square(double x) {
+double Square(double x, double duty) {
     x = fmod(x, 2 * PI);
-    if (x < PI) {
+    if (x < 2 * PI * duty) {
         return 1.0;
     } else {
         return -1.0;
     }
+}
+
+double Triangle(double x) {
+    x = fmod(x, 2 * PI);
+    return x / PI - 1;
 }

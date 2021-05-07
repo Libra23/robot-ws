@@ -26,6 +26,7 @@ class KinematicBase {
     void Config(const KinematicModel& model, uint8_t num_ik_max = 20);
     virtual void Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d& tip_trans);
     virtual bool Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, const VectorXd& init_q, VectorXd& q);
+    MatrixXd GetJacobian(const VectorXd& q, const Affine3d& base_trans);
 
     protected:
     KinematicModel model_;
@@ -33,7 +34,6 @@ class KinematicBase {
 
     private:
     uint8_t num_ik_max_;
-    MatrixXd GetJacobian(const VectorXd& q, const Affine3d& base_trans, const Affine3d& tip_trans);
     MatrixXd SingularityLowSensitiveInverse(const MatrixXd& jacobian);
 };
 

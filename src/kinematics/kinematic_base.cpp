@@ -28,7 +28,7 @@ bool KinematicBase::Inverse(const Affine3d& tip_trans, const Affine3d& base_tran
     
     // prepare
     Vector6d twist = Differentiate(tip_trans, tip_trans_d, 1.0);
-    MatrixXd j = GetJacobian(q_d, base_trans, tip_trans_d);
+    MatrixXd j = GetJacobian(q_d, base_trans);
     int num_ik = 0;
     while (true) {
         //Jacobian j_inv = j.Inverse();
@@ -40,7 +40,7 @@ bool KinematicBase::Inverse(const Affine3d& tip_trans, const Affine3d& base_tran
         twist = Differentiate(tip_trans, tip_trans_d, 1.0);
         if (twist.norm() < 1e-6) break;
         
-        j = GetJacobian(q_d, base_trans, tip_trans_d);
+        j = GetJacobian(q_d, base_trans);
         num_ik++;
         if (num_ik > num_ik_max_) return false;
     }
@@ -59,7 +59,7 @@ Affine3d KinematicBase::CvtModelToTrans(const std::array<double, 3>& xyz, const 
     return trans;
 }
 
-MatrixXd KinematicBase::GetJacobian(const VectorXd& q,const Affine3d& base_trans, const Affine3d& tip_trans) {
+MatrixXd KinematicBase::GetJacobian(const VectorXd& q,const Affine3d& base_trans) {
     MatrixXd jacobian = MatrixXd::Zero(6, q.size());
     const double delta_q = 1e-5;
     for (int i = 0; i < q.size(); i++) {

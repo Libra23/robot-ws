@@ -29,7 +29,7 @@ void Robot::Thread() {
         RobotRef ref;
         bool is_limit;
         GetDefaultRef(ref);
-        ref.arm[RIGHT_FRONT].trans.translation()[Z] += 20 * sin(2 * PI * 1.8 * count_ms * 1e-3);
+        ref.arm[RIGHT_FRONT].trans.translation()[Z] += 20 * Triangle(2 * PI * 1.0 * count_ms * 1e-3);
         for (size_t i = 0; i < arm_.size(); i++) {
             arm_[i].InverseKinematic(ref.arm[i].trans, ref.body.trans, is_limit, ref.arm[i].q);
         }
