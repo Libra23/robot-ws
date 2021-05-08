@@ -1,4 +1,5 @@
 #include "arm_control.hpp"
+#include "esp_log.h"
 
 Arm::Arm() {
     if(IsQuadPupper()) {
@@ -8,14 +9,13 @@ Arm::Arm() {
     }
 }
 
-void Arm::Config(const ArmConfig& config, const VectorXd& init_q) {
-    config_ = config;
-    for (int i = 0; i < init_q.size(); i++) {
-        config_.joint.q_min[i] *= DEG_TO_RAD;
-        config_.joint.q_max[i] *= DEG_TO_RAD;
-    }
-    kinematic_->Config(config_.model, 30);
-    q_pre_ = init_q;
+void Arm::Config(const ArmConfig& config, int arm_id) {
+    kinematic_->Config(config.model, 30);
+    q_min_ = VectorXd::Map(config.joint.q_min.data(), config.joint.q_min.size()) * DEG_TO_RAD;
+    q_max_ = VectorXd::Map(config.joint.q_max.data(), config.joint.q_max.size()) * DEG_TO_RAD;
+    q_pre_ = kinematic_->GetDefaultJoint(arm_id);
+    act_gain_ = MatrixXd::Map(config.act.gain.data(), sqrt(config.act.gain.size()), sqrt(config.act.gain.size())).transpose();
+    act_offset_ = VectorXd::Map(config.act.offset.data(), config.act.offset.size());
 }
 
 void Arm::ForwardKinematic(const VectorXd& q, const Affine3d& base_trans, Affine3d& trans) {
@@ -30,27 +30,28 @@ bool Arm::InverseKinematic(const Affine3d& trans, const Affine3d& base_trans, bo
     return ik_ret;
 }
 
+void Arm::GetDefault(int arm_id, VectorXd& q, const Affine3d& base_trans, Affine3d& trans) {
+    q = kinematic_->GetDefaultJoint(arm_id);
+    ForwardKinematic(q, base_trans, trans);
+}
+
 void Arm::ConvertToAct(const VectorXd& q, VectorXd& act_q) {
-    for (int i = 0; i < q.size(); i++) {
-        act_q[i] = config_.act.gain[i] * q[i] + config_.act.offset[i];
-    }
+    act_q = act_gain_ * q + act_offset_;
 }
 
 void Arm::ConvertToJoint(const VectorXd& act_q, VectorXd& q) {
-    for (int i = 0; i < q.size(); i++) {
-        q[i] = (act_q[i] - config_.act.offset[i]) / config_.act.gain[i];
-    }
+    q = act_gain_.inverse() * (act_q - act_offset_);
 }
 
 bool Arm::LimitJoint(VectorXd& q) {
     bool joint_limit = false;
     for (int i = 0; i < q.size(); i++) {
-        if (q[i] < config_.joint.q_min[i]) {
+        if (q[i] < q_min_[i]) {
             joint_limit = true;
-            q[i] = config_.joint.q_min[i];
-        } else if (config_.joint.q_max[i] < q[i]) {
+            q[i] = q_min_[i];
+        } else if (q_max_[i] < q[i]) {
             joint_limit = true;
-            q[i] = config_.joint.q_max[i];
+            q[i] = q_max_[i];
         }
     }
     return joint_limit;

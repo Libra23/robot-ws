@@ -13,6 +13,8 @@
 #define PI 3.14159265358979323846264338327950288
 #endif
 
+#define GRAVITY_CONSTANT 9.8
+
 enum Axis {
   X,
   Y,

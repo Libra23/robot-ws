@@ -26,7 +26,6 @@ class Robot {
     void ConvertOutput(const RobotRef& ref, OutputState& output);
     void ConvertInput(const InputState& input, RobotState& state);
     void GetDefaultRef(RobotRef& ref);
-    static Vector3d GetDefaultJoint(const ArmId& id);
     std::array<Arm, NUM_ARM> arm_;
     RobotConfig config_;
 };

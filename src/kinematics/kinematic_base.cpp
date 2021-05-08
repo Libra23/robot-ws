@@ -1,4 +1,5 @@
 #include "kinematic_base.hpp"
+#include <iostream>
 
 KinematicBase::KinematicBase() {}
 
@@ -25,13 +26,14 @@ bool KinematicBase::Inverse(const Affine3d& tip_trans, const Affine3d& base_tran
     Affine3d tip_trans_d;
     VectorXd q_d = init_q;
     Forward(q_d, base_trans, tip_trans_d);
-    
+
+    std::cout << "IK" << std::endl;
     // prepare
     Vector6d twist = Differentiate(tip_trans, tip_trans_d, 1.0);
     MatrixXd j = GetJacobian(q_d, base_trans);
     int num_ik = 0;
     while (true) {
-        //Jacobian j_inv = j.Inverse();
+        //MatrixXd j_inv = j.inverse();
         MatrixXd j_inv = SingularityLowSensitiveInverse(j);
         VectorXd dq = j_inv * twist;
         q_d += dq;
@@ -44,17 +46,26 @@ bool KinematicBase::Inverse(const Affine3d& tip_trans, const Affine3d& base_tran
         num_ik++;
         if (num_ik > num_ik_max_) return false;
     }
+    std::cout << "num_ik" << num_ik << std::endl;
+
     q = q_d;
     return true;
  }
 
+ VectorXd KinematicBase::GetDefaultJoint(int arm_id) {
+    VectorXd q = VectorXd::Zero(model_.xyz.size() - 1);
+    return q;
+ }
+
 Affine3d KinematicBase::CvtModelToTrans(const std::array<double, 3>& xyz, const std::array<double, 3>& axis, JointType type, double q) {
-    Affine3d trans;
+    Affine3d trans = Affine3d::Identity();
     if (type == ROTATE) {
         trans.translation() = Vector3d(xyz.data());
         trans.linear() = MatrixFromAxisAndValue(Vector3d(axis.data()), q);
-    } else {
-        trans.translation() << xyz[X], xyz[Y], xyz[Z];
+    } else if (type == SLIDE) {
+        
+    }else {
+        trans.translation() = Vector3d(xyz.data());
     }
     return trans;
 }

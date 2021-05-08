@@ -6,10 +6,8 @@ Motion::Motion() {
 }
 
 void Motion::Config(const std::array<double, XYZ>& cog) {
-    for (int i = 0; i < XYZ; i++) {
-        cog_(i) = cog[i];
-    }
-    rpy_error_integral_ = Vector3d(0.0, 0.0, 0.0);
+    cog_ = Vector3d(cog.data());
+    rpy_error_integral_ = Vector3d::Zero();
     previous_mode_ = Mode::STOP;
 }
 

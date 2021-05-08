@@ -21,7 +21,7 @@ struct ActConfig {
     std::vector<double>  offset;
     ActConfig() : 
         id(NUM_JOINT, -1),
-        gain(NUM_JOINT, 0),
+        gain(NUM_JOINT * NUM_JOINT, 0),
         offset(NUM_JOINT, 0) {}
 };
 struct ArmConfig {
@@ -37,15 +37,20 @@ struct ArmConfig {
 class Arm {
     public:
     Arm();
-    void Config(const ArmConfig& config, const VectorXd& init_q);
+    void Config(const ArmConfig& config, int arm_id);
     void ForwardKinematic(const VectorXd& q, const Affine3d& base_trans, Affine3d& trans);
     bool InverseKinematic(const Affine3d& trans, const Affine3d& base_trans, bool& is_joint_limit, VectorXd& q);
+    void GetDefault(int arm_id, VectorXd& q, const Affine3d& base_trans, Affine3d& trans);
     void ConvertToAct(const VectorXd& q, VectorXd& act_q);
     void ConvertToJoint(const VectorXd& act_q, VectorXd& q);
+
     private:
-    ArmConfig config_;
     std::unique_ptr<KinematicBase> kinematic_;
-    VectorXd q_pre_;    
+    VectorXd q_min_;
+    VectorXd q_max_;
+    VectorXd q_pre_;
+    MatrixXd act_gain_;
+    VectorXd act_offset_;
     bool LimitJoint(VectorXd& q);
 };
 

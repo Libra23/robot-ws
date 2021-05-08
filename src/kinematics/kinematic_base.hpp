@@ -23,10 +23,11 @@ class KinematicBase {
     public:
     KinematicBase();
     virtual ~KinematicBase();
-    void Config(const KinematicModel& model, uint8_t num_ik_max = 20);
+    virtual void Config(const KinematicModel& model, uint8_t num_ik_max = 20);
     virtual void Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d& tip_trans);
     virtual bool Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, const VectorXd& init_q, VectorXd& q);
-    MatrixXd GetJacobian(const VectorXd& q, const Affine3d& base_trans);
+    virtual VectorXd GetDefaultJoint(int arm_id);
+    virtual MatrixXd GetJacobian(const VectorXd& q, const Affine3d& base_trans);
 
     protected:
     KinematicModel model_;

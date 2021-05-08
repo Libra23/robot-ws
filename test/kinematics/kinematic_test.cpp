@@ -33,7 +33,7 @@ TEST_F(KinematicTest, ForwardKinematic) {
     q << 45.0, 0.0, 45.0;
     q *= DEG_TO_RAD;
     Affine3d tip_trans = Affine3d::Identity();
-    //kinematic_.Forward(q, Affine3d::Identity(), tip_trans);
+    kinematic_.Forward(q, Affine3d::Identity(), tip_trans);
     std::cout << q.transpose() * RAD_TO_DEG << std::endl;
     std::cout << tip_trans.translation().transpose() << std::endl;
 }

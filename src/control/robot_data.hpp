@@ -50,9 +50,11 @@ struct BodyState {
 struct ArmState {
     VectorXd q;
     Affine3d trans;
+    VectorXd act_q;
     ArmState() :
         q(VectorXd::Zero(NUM_JOINT)),
-        trans(Affine3d::Identity()) {}
+        trans(Affine3d::Identity()),
+        act_q(VectorXd::Zero(NUM_JOINT)) {}
 };
 struct RobotState {
     BodyState body;

@@ -18,20 +18,44 @@ void Robot::Thread() {
     // set config
     CreateConfig(config_);
     for (size_t i = 0; i < arm_.size(); i++) {
-        arm_[i].Config(config_.arm_config[i], GetDefaultJoint(static_cast<ArmId>(i)));
+        arm_[i].Config(config_.arm_config[i], i);
     }
 
     int count_ms = 0;
     while(true) {
         // input
-        
-        // set ref
-        RobotRef ref;
-        bool is_limit;
-        GetDefaultRef(ref);
-        ref.arm[RIGHT_FRONT].trans.translation()[Z] += 20 * Triangle(2 * PI * 1.0 * count_ms * 1e-3);
+        InputState input;
+        input_memory_.Read(input);
+
+        // state
+        RobotState state;
+        ConvertInput(input, state);
+
+        // calcurate trans
         for (size_t i = 0; i < arm_.size(); i++) {
+            // convert act_q to q
+            arm_[i].ConvertToJoint(state.arm[i].act_q, state.arm[i].q);
+
+            // convert q to trans
+            arm_[i].ForwardKinematic(state.arm[i].q, state.body.trans, state.arm[i].trans);
+        }
+        
+        // ref
+        RobotRef ref;
+        GetDefaultRef(ref);
+
+        // calculate q & act_q
+        for (size_t i = 0; i < arm_.size(); i++) {
+            bool is_limit;
+            // convert trans to q
             arm_[i].InverseKinematic(ref.arm[i].trans, ref.body.trans, is_limit, ref.arm[i].q);
+
+            // convert q to act_q
+            arm_[i].ConvertToAct(ref.arm[i].q, ref.arm[i].act_q);
+            
+            //ESP_LOGI("Robot", "Leg%d : Pos xyz = %f, %f, %f\n", i, ref.arm[i].trans.translation()[X], ref.arm[i].trans.translation()[Y], ref.arm[i].trans.translation()[Z]);
+            //ESP_LOGI("Robot", "Leg%d : Joint q = %f, %f, %f\n", i, ref.arm[i].q[0] * RAD_TO_DEG, ref.arm[i].q[1] * RAD_TO_DEG, ref.arm[i].q[2] * RAD_TO_DEG);
+            //ESP_LOGI("Robot", "Leg%d : Joint act_q = %f, %f, %f\n", i, ref.arm[i].act_q[0], ref.arm[i].act_q[1], ref.arm[i].act_q[2]);
         }
 
         // output
@@ -39,7 +63,7 @@ void Robot::Thread() {
         ConvertOutput(ref, output);
         output_memory_.Write(output);
         delay(10);
-        count_ms += 10;
+        //count_ms += 10;
     }
 }
 
@@ -109,7 +133,9 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},    // Tip
                                 }};
         arm_config.act.id = {{-1, -1, -1}};
-        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.gain = {{-RAD_TO_DEG, 0, 0, 
+                                0, RAD_TO_DEG, 0,
+                                0, -RAD_TO_DEG, -RAD_TO_DEG}};
         arm_config.act.offset = {{60.0, 0.0, -90.0}};
         config.arm_config[LEFT_FRONT] = arm_config;
         // LEFT BACK
@@ -120,7 +146,9 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},     // Tip
                                 }};
         arm_config.act.id = {{-1, -1, -1}};
-        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.gain = {{-RAD_TO_DEG, 0, 0, 
+                                0, RAD_TO_DEG, 0,
+                                0, -RAD_TO_DEG, -RAD_TO_DEG}};
         arm_config.act.offset = {{120.0, 0.0, -90.0}};
         config.arm_config[LEFT_BACK] = arm_config;
         // RIGHT FRONT
@@ -130,10 +158,12 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},    // Pitch2
                                 {{0.0, 0.0, -60.0}},    // Tip
                                 }};
-        arm_config.joint.q_min = {{-90.0, 0.0, -180.0}};
-        arm_config.joint.q_max = {{90.0, 180.0, 0.0}};
+        arm_config.joint.q_min = {{-90.0, -180.0, -180.0}};
+        arm_config.joint.q_max = {{90.0, 180.0, 180.0}};
         arm_config.act.id = {{6, 7, 8}};
-        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, -RAD_TO_DEG}};
+        arm_config.act.gain = {{-RAD_TO_DEG, 0, 0, 
+                                0, RAD_TO_DEG, 0,
+                                0, -RAD_TO_DEG, -RAD_TO_DEG}};
         arm_config.act.offset = {{0.0, -90.0, -90.0}};
         config.arm_config[RIGHT_FRONT] = arm_config;
         // RIGHT BACK
@@ -144,7 +174,9 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},     // Tip
                                 }};
         arm_config.act.id = {{-1, -1, -1}};
-        arm_config.act.gain = {{-RAD_TO_DEG, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.gain = {{-RAD_TO_DEG, 0, 0, 
+                                0, RAD_TO_DEG, 0,
+                                0, -RAD_TO_DEG, -RAD_TO_DEG}};
         arm_config.act.offset = {{-120.0, 0.0, -90.0}};
         config.arm_config[RIGHT_BACK] = arm_config;
     }
@@ -181,7 +213,7 @@ void Robot::ConvertOutput(const RobotRef& ref, OutputState& output) {
         for (size_t j = 0; j < act_config.id.size(); j++) {
             const int index = i * act_config.id.size() + j;
             output.serial_servo[index].id = act_config.id[j];
-            output.serial_servo[index].act_q = act_config.gain[j] * ref.arm[i].q[j] + act_config.offset[j];
+            output.serial_servo[index].act_q = ref.arm[i].act_q[j];
             output.serial_servo[index].act_qd = 0.0;
             output.serial_servo[index].enable = true;
         }
@@ -191,30 +223,10 @@ void Robot::ConvertOutput(const RobotRef& ref, OutputState& output) {
 void Robot::GetDefaultRef(RobotRef& ref) {
     // body
     ref.body.trans = Affine3d::Identity();
-    ref.body.trans.linear() = MatrixFromRpy(Vector3d(0.0, 0.0, 0.0));
     // arm
     for (size_t i = 0; i < ref.arm.size(); i++) {
-        ref.arm[i].q = GetDefaultJoint(static_cast<ArmId>(i));
-        arm_[i].ForwardKinematic(ref.arm[i].q, Affine3d::Identity(), ref.arm[i].trans);
+        arm_[i].GetDefault(i, ref.arm[i].q, ref.body.trans, ref.arm[i].trans);
     }
-}
-
-Vector3d Robot::GetDefaultJoint(const ArmId& id) {
-    Vector3d q_deg = Vector3d::Zero();
-    if (id == LEFT_FRONT) {
-        q_deg = Vector3d(60.0, 45.0, 45.0);
-    } else if (id == LEFT_BACK) {
-        q_deg = Vector3d(150.0, 45.0, 45.0);
-    } else if (id == RIGHT_FRONT) {
-        if(IsQuadPupper()) {
-            q_deg = Vector3d(0.0, 45.0, -45.0);
-        } else {
-            q_deg = Vector3d(-60.0, 45.0, 45.0);
-        }
-    } else if (id == RIGHT_BACK) {
-        q_deg = Vector3d(-150.0, 45.0, 45.0);
-    }
-    return q_deg * DEG_TO_RAD;
 }
 
 /**
