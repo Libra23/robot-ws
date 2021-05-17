@@ -3,6 +3,8 @@
 
 #include "kinematic_base.hpp"
 
+// #define PUPPPER_KINEMATIC_DEBUG
+
 enum PupperJointId {
     PUPPER_ROLL,
     PUPPER_PITCH1,

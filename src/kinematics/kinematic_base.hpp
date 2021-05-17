@@ -23,18 +23,18 @@ class KinematicBase {
     public:
     KinematicBase();
     virtual ~KinematicBase();
-    virtual void Config(const KinematicModel& model, uint8_t num_ik_max = 20);
-    virtual void Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d& tip_trans);
+    void Config(const KinematicModel& model, int num_ik_max = 20);
+    void Forward(const VectorXd& q, const Affine3d& base_trans, Affine3d& tip_trans);
     virtual bool Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, const VectorXd& init_q, VectorXd& q);
     virtual VectorXd GetDefaultJoint(int arm_id);
-    virtual MatrixXd GetJacobian(const VectorXd& q, const Affine3d& base_trans);
+    MatrixXd GetJacobian(const VectorXd& q, const Affine3d& base_trans);
 
     protected:
     KinematicModel model_;
     Affine3d CvtModelToTrans(const std::array<double, 3>& xyz, const std::array<double, 3>& axis, JointType type, double q);
 
     private:
-    uint8_t num_ik_max_;
+    int num_ik_max_;
     MatrixXd SingularityLowSensitiveInverse(const MatrixXd& jacobian);
 };
 

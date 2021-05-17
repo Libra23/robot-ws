@@ -10,6 +10,7 @@ typedef Eigen::Matrix<double, 4, 4> Matrix4d;
 typedef Eigen::Affine3d Affine3d;
 typedef Eigen::VectorXd VectorXd;
 typedef Eigen::MatrixXd MatrixXd;
+typedef Vector6d Wrench;
 
 Matrix3d MatrixFromAxisAndValue(const Vector3d& axis, double value);
 Matrix3d MatrixFromRpy(const Vector3d& rpy);

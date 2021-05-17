@@ -7,7 +7,7 @@ KinematicBase::~KinematicBase() {
 
 }
 
-void KinematicBase::Config(const KinematicModel& model, uint8_t num_ik_max) {
+void KinematicBase::Config(const KinematicModel& model, int num_ik_max) {
     model_ = model;
     num_ik_max_ = num_ik_max;
 }
@@ -27,7 +27,6 @@ bool KinematicBase::Inverse(const Affine3d& tip_trans, const Affine3d& base_tran
     VectorXd q_d = init_q;
     Forward(q_d, base_trans, tip_trans_d);
 
-    std::cout << "IK" << std::endl;
     // prepare
     Vector6d twist = Differentiate(tip_trans, tip_trans_d, 1.0);
     MatrixXd j = GetJacobian(q_d, base_trans);
@@ -43,11 +42,10 @@ bool KinematicBase::Inverse(const Affine3d& tip_trans, const Affine3d& base_tran
         if (twist.norm() < 1e-6) break;
         
         j = GetJacobian(q_d, base_trans);
-        num_ik++;
+        num_ik++;    
         if (num_ik > num_ik_max_) return false;
     }
-    std::cout << "num_ik" << num_ik << std::endl;
-
+    
     q = q_d;
     return true;
  }

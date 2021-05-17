@@ -57,9 +57,9 @@ TEST_F(KinematicTest, CheckInverseKinematic) {
     q_standard *= DEG_TO_RAD;
     VectorXd q_ik = VectorXd::Zero(3);
     bool ik_ret = kinematic_.Inverse(tip_trans_expect, Affine3d::Identity(), q_standard, q_ik);
-    
+    EXPECT_TRUE(false);
     std::cout << q_ik.transpose() * RAD_TO_DEG << std::endl;
     for (int i = 0; i < q_expect.size(); i++) {
-        EXPECT_NEAR(q_expect(i), q_ik(i), TOLERANCE);
+        //EXPECT_NEAR(q_expect(i), q_ik(i), TOLERANCE);
     }
 }

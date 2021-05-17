@@ -1,5 +1,5 @@
 #include "pupper_kinematic.hpp"
-#include <iostream>
+//#include <iostream>
 
 PupperKinematic::PupperKinematic() : KinematicBase() {
 
@@ -20,12 +20,14 @@ bool PupperKinematic::Inverse(const Affine3d& tip_trans, const Affine3d& base_tr
     const double l_pitch1_tip = sqrt(x * x +  lz * lz);
     const double cos_gamma = (l_pitch1_pitch2 * l_pitch1_pitch2 + l_pitch2_tip * l_pitch2_tip -l_pitch1_tip * l_pitch1_tip) / 
                              (2 * l_pitch1_pitch2 * l_pitch2_tip);
+    // std::cout << "cos_gamma = " << cos_gamma << std::endl;
     if (fabs(cos_gamma) > 1) return false;
     q[PUPPER_PITCH2] = acos(cos_gamma) - PI;
 
     const double sin_beta = -l_pitch2_tip / l_pitch1_tip * sin(acos(cos_gamma));
+    //std::cout << "sin_beta = " << sin_beta << std::endl;
     if (fabs(sin_beta) > 1) return false;
-    q[PUPPER_PITCH1] = atan2(x, lz) + asin(sin_beta);
+    q[PUPPER_PITCH1] = atan2(-x, lz) + asin(sin_beta);
 
     return true;
 }
