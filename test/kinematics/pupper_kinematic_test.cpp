@@ -3,12 +3,18 @@
 #include "pupper_kinematic.hpp"
 #include <memory>
 
+#define PLOT
+#ifdef PLOT
+#include "matplotlibcpp.h"
+namespace plt = matplotlibcpp;
+#endif
+
 constexpr double TOLERANCE = 0.1;
 
 class PupperKinematicTest : public ::testing::Test {
     protected:
     PupperKinematicTest();
-    VectorXd Dynamics(const VectorXd q, const VectorXd qd, const VectorXd qdd);
+    VectorXd Dynamics(const VectorXd& q, const VectorXd& qd, const VectorXd& qdd);
     std::unique_ptr<KinematicBase> kinematic_;
 };
 
@@ -31,7 +37,7 @@ PupperKinematicTest::PupperKinematicTest() {
     kinematic_->Config(model, 50);
 }
 
-VectorXd PupperKinematicTest::Dynamics(const VectorXd q, const VectorXd qd, const VectorXd qdd) {
+VectorXd PupperKinematicTest::Dynamics(const VectorXd& q, const VectorXd& qd, const VectorXd& qdd) {
     const double m1 = 0.05;
     const double m2 = 0.05;
     const double l1 = 60.0;
@@ -114,39 +120,83 @@ TEST_F(PupperKinematicTest, CheckInverseKinematic) {
  */
 TEST_F(PupperKinematicTest, CheckDynamics) {
     const double mass = 0.5;
+    const double target_height = 15.0;
+    const double target_velocity = sqrt(2 * GRAVITY_CONSTANT * target_height);
+    const double acc = 2.0;
+    const double interval = target_velocity / acc;
+    const double sample_time = 1e-2;
+    const double resolution = interval / sample_time;
+    std::cout << "interval[s] = " << interval << "resolution = " << resolution << std::endl;
+    #ifdef PLOT
+    std::vector<double> x(resolution), y0(resolution), y1(resolution), y2(resolution);
+    #endif
 
     VectorXd q(NUM_PUPPER_JOINT);
-    q << 0.0, 60.0, -120.0;
+    q << 0.0, 75.0, -150.0;
     q *= DEG_TO_RAD;
+    Affine3d base_trans = Affine3d::Identity();
     Affine3d tip_trans;
-    kinematic_->Forward(q, Affine3d::Identity(), tip_trans);
-    const int resolution = 2;
-    const double sample_time = 1e-3;
+    kinematic_->Forward(q, base_trans, tip_trans);
+    std::cout << "tip_trans(XYZ) start = " << tip_trans.translation().transpose() << std::endl;
     VectorXd q_pre = q;
     VectorXd qd = VectorXd::Zero(NUM_PUPPER_JOINT);
     VectorXd qd_pre = qd;
     VectorXd qdd = VectorXd::Zero(NUM_PUPPER_JOINT);
-    
+
+    double t = 0;
     for (int i = 0; i < resolution; i++) {
         // update base ref
-
+        base_trans.translation()[Z] = 0.5 * acc * t * t;
         // ik
         VectorXd q_ik = VectorXd::Zero(NUM_PUPPER_JOINT);
-        kinematic_->Inverse(tip_trans, Affine3d::Identity(), q, q_ik);
-        const MatrixXd jacobian = kinematic_->GetJacobian(q_ik, Affine3d::Identity());
+        bool ret = kinematic_->Inverse(tip_trans, base_trans, q, q_ik);
+        const MatrixXd jacobian = kinematic_->GetJacobian(q_ik, base_trans);
 
-        qd = (q_ik - q_pre) / sample_time;
+        q = q_ik;
+        qd = (q - q_pre) / sample_time;
         qdd = (qd - qd_pre) / sample_time;
 
         // effort
         Wrench ex_force;
-        ex_force << 0, 0, mass * GRAVITY_CONSTANT , 0.0, 0.0, 0.0;
-        VectorXd effort = Dynamics(q, qd, qdd) + jacobian.transpose() * ex_force;
-
-        std::cout << "effort[N m] = " << effort.transpose() * 0.001 << std::endl;
+        ex_force << 0, 0, mass * (GRAVITY_CONSTANT + acc) , 0.0, 0.0, 0.0;
+        VectorXd effort = Dynamics(q_ik, qd, qdd) + jacobian.transpose() * ex_force;
 
         // update pre
-        q_pre = q_ik;
+        t += sample_time;
+        q_pre = q;
         qd_pre = qd;
-    } 
+
+        Affine3d tip_trans_check;
+        kinematic_->Forward(q, base_trans, tip_trans_check);
+
+        #ifdef PLOT
+        x[i] = t;
+        constexpr bool SHOW_EFFORT= true;
+        constexpr bool SHOW_QD = false;
+        if (SHOW_EFFORT) {
+            y0[i] = effort[0] * 0.001 / GRAVITY_CONSTANT * 100; // Nmm -> kg cm
+            y1[i] = effort[1] * 0.001 / GRAVITY_CONSTANT * 100;
+            y2[i] = effort[2] * 0.001 / GRAVITY_CONSTANT * 100;
+        } else if (SHOW_QD) {
+            y0[i] = qd[0] * RAD_TO_DEG; // rad/s -> deg/s
+            y1[i] = qd[1] * RAD_TO_DEG;
+            y2[i] = qd[2] * RAD_TO_DEG;
+        } else {
+            y0[i] = q[0] * RAD_TO_DEG; // rad -> deg.
+            y1[i] = q[1] * RAD_TO_DEG;
+            y2[i] = q[2] * RAD_TO_DEG;
+        }
+
+        #endif
+    }
+
+    kinematic_->Forward(q, base_trans, tip_trans);
+    std::cout << "tip_trans(XYZ) end = " << tip_trans.translation().transpose() << std::endl;
+    std::cout << "q = " << q.transpose() * RAD_TO_DEG << std::endl;
+    #ifdef PLOT
+    plt::plot(x, y0);
+    plt::plot(x, y1);
+    plt::plot(x, y2);
+    plt::show();
+    #endif
 }

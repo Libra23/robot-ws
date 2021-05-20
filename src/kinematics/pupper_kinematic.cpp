@@ -6,7 +6,7 @@ PupperKinematic::PupperKinematic() : KinematicBase() {
 }
 
 bool PupperKinematic::Inverse(const Affine3d& tip_trans, const Affine3d& base_trans, const VectorXd& init_q, VectorXd& q) {
-    Affine3d local_trans = tip_trans * base_trans.inverse();
+    Affine3d local_trans = base_trans.inverse() * tip_trans;
     const double& l_roll_pitch1 = model_.xyz[1][Y];
     const double& l_pitch1_pitch2 = model_.xyz[2][Z];
     const double& l_pitch2_tip = model_.xyz[3][Z];
