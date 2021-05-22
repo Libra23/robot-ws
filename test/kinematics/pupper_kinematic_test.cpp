@@ -159,7 +159,7 @@ TEST_F(PupperKinematicTest, CheckDynamics) {
         // effort
         Wrench ex_force;
         ex_force << 0, 0, mass * (GRAVITY_CONSTANT + acc) , 0.0, 0.0, 0.0;
-        VectorXd effort = Dynamics(q_ik, qd, qdd) + jacobian.transpose() * ex_force;
+        VectorXd effort = Dynamics(q_ik, qd, qdd) - jacobian.transpose() * ex_force;
 
         // update pre
         t += sample_time;
@@ -194,9 +194,12 @@ TEST_F(PupperKinematicTest, CheckDynamics) {
     std::cout << "tip_trans(XYZ) end = " << tip_trans.translation().transpose() << std::endl;
     std::cout << "q = " << q.transpose() * RAD_TO_DEG << std::endl;
     #ifdef PLOT
-    plt::plot(x, y0);
-    plt::plot(x, y1);
-    plt::plot(x, y2);
+    plt::named_plot("index0", x, y0);
+    plt::legend(); 
+    plt::named_plot("index1", x, y1);
+    plt::legend(); 
+    plt::named_plot("index2", x, y2);
+    plt::legend(); 
     plt::show();
     #endif
 }
