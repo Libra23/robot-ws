@@ -51,12 +51,13 @@ VectorXd PupperKinematicTest::Dynamics(const VectorXd& q, const VectorXd& qd, co
     const double q2 = q[2];
     const double qd1 = qd[1];
     const double qd2 = qd[2];
+    const double k2 = 100.0; // Nmm / rad
 
     MatrixXd M(2, 2);
     M << m1 * lg1 * lg1 + m2 * (l1 * l1 + 2 * l1 * lg2 * cos(q2) + lg2 * lg2) + i1 + i2, m2 * (l1 * lg2 * cos(q2) + lg2 * lg2) + i2,
          m2 * (l1 * lg2 * cos(q2) + lg2 * lg2) + i2, m2 * lg2 * lg2 + i2;
     VectorXd h(2);
-    h << -m2 * l1 * lg2 * (2 * qd1 + qd2) * sin(q2) * qd2, m2 * l1 * lg2 * qd1 * qd1 * sin(q2);
+    h << -m2 * l1 * lg2 * (2 * qd1 + qd2) * sin(q2) * qd2, m2 * l1 * lg2 * qd1 * qd1 * sin(q2) + k2 * q2;
     VectorXd g(2);
     g << m1 * GRAVITY_CONSTANT * lg1 * sin(q1) + m2 * GRAVITY_CONSTANT * (l1 * sin(q1) + lg2 * sin(q1 + q2)), m2 * GRAVITY_CONSTANT * lg2 * sin(q1 + q2);
     
@@ -121,7 +122,7 @@ TEST_F(PupperKinematicTest, CheckInverseKinematic) {
  */
 TEST_F(PupperKinematicTest, CheckDynamics) {
     constexpr bool SHOW_SPRING_ASSIST = true;
-    
+
     const double mass = 0.5;
     const double sample_time = 1e-2;
     const double resolution = 3000;
@@ -214,8 +215,8 @@ TEST_F(PupperKinematicTest, CheckDynamics) {
         }
 
         if (SHOW_SPRING_ASSIST) {
-            x[i] = q[2] * RAD_TO_DEG; // rad -> deg.
-            y2[i] = effort[2] * 0.001 / GRAVITY_CONSTANT * 100; // Nmm -> kg cm
+            x[i] = q[2]; // rad
+            y2[i] = effort[2]; // Nmm
         }
         #endif
     }
