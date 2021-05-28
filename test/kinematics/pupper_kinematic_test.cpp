@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "kinematic_base.hpp"
 #include "pupper_kinematic.hpp"
+#include "algorithm/smooth_path.hpp"
 #include <memory>
 
 #define PLOT
@@ -119,60 +120,77 @@ TEST_F(PupperKinematicTest, CheckInverseKinematic) {
  * @test check dynamics
  */
 TEST_F(PupperKinematicTest, CheckDynamics) {
+    constexpr bool SHOW_SPRING_ASSIST = true;
+    
     const double mass = 0.5;
-    const double target_height = 15.0;
-    const double target_velocity = sqrt(2 * GRAVITY_CONSTANT * target_height);
-    const double acc = 2.0;
-    const double interval = target_velocity / acc;
     const double sample_time = 1e-2;
-    const double resolution = interval / sample_time;
-    std::cout << "interval[s] = " << interval << "resolution = " << resolution << std::endl;
+    const double resolution = 3000;
     #ifdef PLOT
-    std::vector<double> x(resolution), y0(resolution), y1(resolution), y2(resolution);
+    std::vector<double> time(resolution), x(resolution), y0(resolution), y1(resolution), y2(resolution);
     #endif
 
+    // set init position
     VectorXd q(NUM_PUPPER_JOINT);
-    q << 0.0, 75.0, -150.0;
-    q *= DEG_TO_RAD;
     Affine3d base_trans = Affine3d::Identity();
     Affine3d tip_trans;
+    q << 0.0, 45.0, -90.0;
+    q *= DEG_TO_RAD;
     kinematic_->Forward(q, base_trans, tip_trans);
     std::cout << "tip_trans(XYZ) start = " << tip_trans.translation().transpose() << std::endl;
+
+    // prepare pre value
+    Affine3d base_trans_pre = base_trans;
+    Vector6d base_twist_pre = Vector6d::Zero();
     VectorXd q_pre = q;
-    VectorXd qd = VectorXd::Zero(NUM_PUPPER_JOINT);
-    VectorXd qd_pre = qd;
-    VectorXd qdd = VectorXd::Zero(NUM_PUPPER_JOINT);
+    VectorXd qd_pre = VectorXd::Zero(NUM_PUPPER_JOINT);
+
+    // create smooth path
+    SmoothingPath<VectorXd> path;
+    path.Create(q, q, 0, 1);
 
     double t = 0;
     for (int i = 0; i < resolution; i++) {
         // update base ref
-        base_trans.translation()[Z] = 0.5 * acc * t * t;
+        Vector3d ref_pos = Vector3d(0, 0, 20 * sin(2 * PI * 0.05 * t));
+        base_trans.translation() = ref_pos;
         // ik
         VectorXd q_ik = VectorXd::Zero(NUM_PUPPER_JOINT);
         bool ret = kinematic_->Inverse(tip_trans, base_trans, q, q_ik);
         const MatrixXd jacobian = kinematic_->GetJacobian(q_ik, base_trans);
-
         q = q_ik;
-        qd = (q - q_pre) / sample_time;
-        qdd = (qd - qd_pre) / sample_time;
+        if (path.DoSmoothing()) {
+            path.ModifyTarget(q);
+            q = path.Get(t);
+        }
+
+        // calculate velocity and acceleration
+        Vector6d base_twist = Differentiate(base_trans, base_trans_pre, sample_time);
+        Vector6d base_accel = Vector6d::Zero();//(base_twist - base_twist_pre) / sample_time;
+        VectorXd qd = (q - q_pre) / sample_time;
+        VectorXd qdd = (qd - qd_pre) / sample_time;
 
         // effort
-        Wrench ex_force;
-        ex_force << 0, 0, mass * (GRAVITY_CONSTANT + acc) , 0.0, 0.0, 0.0;
+        Wrench ex_force = Wrench::Zero();
+        Vector3d gravity = Vector3d(0, 0, GRAVITY_CONSTANT);
+        ex_force.head(XYZ) = mass * (gravity + base_accel.head(XYZ));
+
+        // EOM
         VectorXd effort = Dynamics(q_ik, qd, qdd) - jacobian.transpose() * ex_force;
 
         // update pre
         t += sample_time;
+        base_trans_pre = base_trans;
+        base_twist_pre = base_twist;
         q_pre = q;
         qd_pre = qd;
 
-        Affine3d tip_trans_check;
-        kinematic_->Forward(q, base_trans, tip_trans_check);
-
         #ifdef PLOT
-        x[i] = t;
-        constexpr bool SHOW_EFFORT= true;
+        time[i] = t;
+        constexpr bool SHOW_EFFORT= false;
         constexpr bool SHOW_QD = false;
+        constexpr bool SHOW_BODY = false;
+        constexpr bool SHOW_EX_FORCE = false;
+        
         if (SHOW_EFFORT) {
             y0[i] = effort[0] * 0.001 / GRAVITY_CONSTANT * 100; // Nmm -> kg cm
             y1[i] = effort[1] * 0.001 / GRAVITY_CONSTANT * 100;
@@ -181,12 +199,24 @@ TEST_F(PupperKinematicTest, CheckDynamics) {
             y0[i] = qd[0] * RAD_TO_DEG; // rad/s -> deg/s
             y1[i] = qd[1] * RAD_TO_DEG;
             y2[i] = qd[2] * RAD_TO_DEG;
+        } else if (SHOW_BODY) {
+            y0[i] = base_trans.translation()[X];
+            y1[i] = base_trans.translation()[Y];
+            y2[i] = base_trans.translation()[Z];
+        } else if (SHOW_EX_FORCE) {
+            y0[i] = ex_force.head(XYZ)[X];
+            y1[i] = ex_force.head(XYZ)[Y];
+            y2[i] = ex_force.head(XYZ)[Z];
         } else {
             y0[i] = q[0] * RAD_TO_DEG; // rad -> deg.
             y1[i] = q[1] * RAD_TO_DEG;
             y2[i] = q[2] * RAD_TO_DEG;
         }
 
+        if (SHOW_SPRING_ASSIST) {
+            x[i] = q[2] * RAD_TO_DEG; // rad -> deg.
+            y2[i] = effort[2] * 0.001 / GRAVITY_CONSTANT * 100; // Nmm -> kg cm
+        }
         #endif
     }
 
@@ -194,12 +224,18 @@ TEST_F(PupperKinematicTest, CheckDynamics) {
     std::cout << "tip_trans(XYZ) end = " << tip_trans.translation().transpose() << std::endl;
     std::cout << "q = " << q.transpose() * RAD_TO_DEG << std::endl;
     #ifdef PLOT
-    plt::named_plot("index0", x, y0);
-    plt::legend(); 
-    plt::named_plot("index1", x, y1);
-    plt::legend(); 
-    plt::named_plot("index2", x, y2);
-    plt::legend(); 
+    if (SHOW_SPRING_ASSIST) {
+        plt::named_plot("index2", x, y2);
+        plt::legend(); 
+    } else {
+        plt::named_plot("index0", time, y0);
+        plt::legend(); 
+        plt::named_plot("index1", time, y1);
+        plt::legend(); 
+        plt::named_plot("index2", time, y2);
+        plt::legend(); 
+    }
+
     plt::show();
     #endif
 }
