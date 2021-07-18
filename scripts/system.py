@@ -11,7 +11,7 @@ path = os.getcwd()
 print(path)
 
 # open parameter yaml
-with open(os.getcwd() + '/src/scripts/system_config.yml','r') as yml:
+with open(os.getcwd() + '/scripts/system_config.yml','r') as yml:
     config = yaml.safe_load(yml)
 
 # time

@@ -1,5 +1,15 @@
 #include "robot_control.hpp"
 #include "esp_log.h"
+
+//#define ROBOT_CONTROL_DEBUG
+#ifdef ROBOT_CONTROL_DEBUG
+#define ROBOT_LOG(...) ESP_LOGI(__VA_ARGS__)
+#define ROBOT_DEBUG_LOG(...) ESP_LOGI(__VA_ARGS__)
+#else
+#define ROBOT_LOG(...) ESP_LOGI(__VA_ARGS__)
+#define ROBOT_DEBUG_LOG(...)
+#endif
+
 /**
  * @brief Global parameter
  */
@@ -10,11 +20,11 @@ extern ShareMemory<InputState> input_memory_;   //!< defined at io_interface
  * @class Robot
  */
 Robot::Robot() {
-    ESP_LOGI("Robot", "Constructor");
+    ROBOT_LOG("Robot", "Constructor");
 }
 
 void Robot::Thread() {
-    ESP_LOGI("Robot", "Thread");
+    ROBOT_LOG("Robot", "Thread");
     // set config
     CreateConfig(config_);
     for (size_t i = 0; i < arm_.size(); i++) {
@@ -53,9 +63,9 @@ void Robot::Thread() {
             // convert q to act_q
             arm_[i].ConvertToAct(ref.arm[i].q, ref.arm[i].act_q);
             
-            //ESP_LOGI("Robot", "Leg%d : Pos xyz = %f, %f, %f\n", i, ref.arm[i].trans.translation()[X], ref.arm[i].trans.translation()[Y], ref.arm[i].trans.translation()[Z]);
-            //ESP_LOGI("Robot", "Leg%d : Joint q = %f, %f, %f\n", i, ref.arm[i].q[0] * RAD_TO_DEG, ref.arm[i].q[1] * RAD_TO_DEG, ref.arm[i].q[2] * RAD_TO_DEG);
-            //ESP_LOGI("Robot", "Leg%d : Joint act_q = %f, %f, %f\n", i, ref.arm[i].act_q[0], ref.arm[i].act_q[1], ref.arm[i].act_q[2]);
+            ROBOT_DEBUG_LOG("Robot", "Leg%d : Pos xyz = %f, %f, %f\n", i, ref.arm[i].trans.translation()[X], ref.arm[i].trans.translation()[Y], ref.arm[i].trans.translation()[Z]);
+            ROBOT_DEBUG_LOG("Robot", "Leg%d : Joint q = %f, %f, %f\n", i, ref.arm[i].q[0] * RAD_TO_DEG, ref.arm[i].q[1] * RAD_TO_DEG, ref.arm[i].q[2] * RAD_TO_DEG);
+            ROBOT_DEBUG_LOG("Robot", "Leg%d : Joint act_q = %f, %f, %f\n", i, ref.arm[i].act_q[0], ref.arm[i].act_q[1], ref.arm[i].act_q[2]);
         }
 
         // output
@@ -132,7 +142,7 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},    // Pitch2
                                 {{0.0, 0.0, -60.0}},    // Tip
                                 }};
-        arm_config.act.id = {{-1, -1, -1}};
+        arm_config.act.id = {{0, 1, 2}};
         arm_config.act.gain = {{-RAD_TO_DEG, 0, 0, 
                                 0, RAD_TO_DEG, 0,
                                 0, -RAD_TO_DEG, -RAD_TO_DEG}};
@@ -145,7 +155,7 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},     // Pitch2
                                 {{0.0, 0.0, -60.0}},     // Tip
                                 }};
-        arm_config.act.id = {{-1, -1, -1}};
+        arm_config.act.id = {{3, 4, 5}};
         arm_config.act.gain = {{-RAD_TO_DEG, 0, 0, 
                                 0, RAD_TO_DEG, 0,
                                 0, -RAD_TO_DEG, -RAD_TO_DEG}};
@@ -173,7 +183,7 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},     // Pitch2
                                 {{0.0, 0.0, -60.0}},     // Tip
                                 }};
-        arm_config.act.id = {{-1, -1, -1}};
+        arm_config.act.id = {{9, 10, 11}};
         arm_config.act.gain = {{-RAD_TO_DEG, 0, 0, 
                                 0, RAD_TO_DEG, 0,
                                 0, -RAD_TO_DEG, -RAD_TO_DEG}};
@@ -203,6 +213,7 @@ void Robot::ConvertInput(const InputState& input, RobotState& state) {
     for (size_t i = 0; i < arm_.size(); i++) {
         const ActConfig& act_config = config_.arm_config[i].act;
         for (size_t j = 0; j < act_config.id.size(); j++) {
+            
         }
     }
 }
@@ -233,11 +244,11 @@ void Robot::GetDefaultRef(RobotRef& ref) {
  * @class RobotMain
  */
 RobotMain::RobotMain() {
-    ESP_LOGI("Robot Main", "Constructor");
+    ROBOT_LOG("Robot Main", "Constructor");
 }
 
 void RobotMain::Run() {
-    ESP_LOGI("Robot Main", "Run");
+    ROBOT_LOG("Robot Main", "Run");
     th_.Start(RobotMain::LaunchThread, "robot_thread", 2, 8192, &robot_, 0);
 }
 
@@ -246,6 +257,6 @@ uint32_t RobotMain::StackMargin() {
 }
 
 void RobotMain::LaunchThread(void* arg) {
-    ESP_LOGI("Robot Main", "Launch");
+    ROBOT_LOG("Robot Main", "Launch");
     reinterpret_cast<Robot*>(arg)->Thread();
 }

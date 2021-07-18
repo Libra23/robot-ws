@@ -1,5 +1,15 @@
 #include "io_interface.hpp"
 #include "esp_log.h"
+
+//#define IO_INTERFACE_DEBUG
+#ifdef IO_INTERFACE_DEBUG
+#define IO_LOG(...) ESP_LOGI(__VA_ARGS__)
+#define IO_DEBUG_LOG(...) ESP_LOGI(__VA_ARGS__)
+#else
+#define IO_LOG(...) ESP_LOGI(__VA_ARGS__)
+#define IO_DEBUG_LOG(...)
+#endif
+
 /**
  * @brief Global parameter
  */
@@ -10,11 +20,11 @@ ShareMemory<InputState> input_memory_;
  * @class IoInterface
  */
 IoInterface::IoInterface() {
-    ESP_LOGI("Io Interface", "Constructor");
+    IO_LOG("Io Interface", "Constructor");
 }
 
 void IoInterface::Thread() {
-    ESP_LOGI("Io Interface", "Thread");
+    IO_LOG("Io Interface", "Thread");
 
     // set config
     CreateConfig(config_);
@@ -58,10 +68,10 @@ void IoInterface::UpdateOutput(const OutputState& state) {
             // do nothing
         } else if (serial_servo_state.enable) {
             double act_q = serial_servo_.SetPosition(serial_servo_state.id, serial_servo_state.act_q);
-            //ESP_LOGI("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
+            IO_DEBUG_LOG("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
         } else {
             double act_q = serial_servo_.FreePosition(serial_servo_state.id);
-            //ESP_LOGI("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
+            IO_DEBUG_LOG("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
         }
     }
 }
@@ -70,11 +80,11 @@ void IoInterface::UpdateOutput(const OutputState& state) {
  * @class IoInterfaceMain
  */
 IoInterfaceMain::IoInterfaceMain() {
-    ESP_LOGI("Io Interface Main", "Constructor");
+    IO_LOG("Io Interface Main", "Constructor");
 }
 
 void IoInterfaceMain::Run() {
-    ESP_LOGI("Io Interface Main", "Run");
+    IO_LOG("Io Interface Main", "Run");
     th_.Start(IoInterfaceMain::LaunchThread, "io_thread", 1, 4096, &io_interface_, 1);
 }
 
@@ -83,6 +93,6 @@ uint32_t IoInterfaceMain::StackMargin() {
 }
 
 void IoInterfaceMain::LaunchThread(void* arg) {
-    ESP_LOGI("Io Interface Main", "Launch");
+    IO_LOG("Io Interface Main", "Launch");
     reinterpret_cast<IoInterface*>(arg)->Thread();
 }

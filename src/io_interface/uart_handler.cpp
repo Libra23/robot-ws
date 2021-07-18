@@ -34,7 +34,7 @@ void UartHandler::Config(const UartConfig& config) {
     uart_config.stop_bits = UART_STOP_BITS_1;
     uart_config.flow_ctrl = UART_HW_FLOWCTRL_DISABLE;
     uart_config.source_clk = UART_SCLK_APB;
-    uart_config.rx_flow_ctrl_thresh = 122;
+    uart_config.rx_flow_ctrl_thresh = 0;
     uart_param_config(port_id_, &uart_config);
     // other parameter
     time_out_ms_ = config.time_out_ms;

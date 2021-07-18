@@ -1,0 +1,20 @@
+plant:
+  M: 0.01
+  C: 0.01
+  K: 0.01
+disturbance:
+  amp: 1.0
+  freq: 5.0
+ff:
+  M: 0.005
+  C: 0.00
+  K: 0.00
+  fc: 20.0
+fb:
+  Kp: 1.5
+  Td: 0.5
+  Ti: 0.0
+  fc: 200.0
+ex_fb:
+  M: 0.005
+  fc: 20.0

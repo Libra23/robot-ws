@@ -15,6 +15,7 @@ void Arm::Config(const ArmConfig& config, int arm_id) {
     q_max_ = VectorXd::Map(config.joint.q_max.data(), config.joint.q_max.size()) * DEG_TO_RAD;
     q_pre_ = kinematic_->GetDefaultJoint(arm_id);
     act_gain_ = MatrixXd::Map(config.act.gain.data(), sqrt(config.act.gain.size()), sqrt(config.act.gain.size())).transpose();
+    act_gain_inverse_ = act_gain_.inverse();
     act_offset_ = VectorXd::Map(config.act.offset.data(), config.act.offset.size());
 }
 
@@ -40,7 +41,7 @@ void Arm::ConvertToAct(const VectorXd& q, VectorXd& act_q) {
 }
 
 void Arm::ConvertToJoint(const VectorXd& act_q, VectorXd& q) {
-    q = act_gain_.inverse() * (act_q - act_offset_);
+    q = act_gain_inverse_ * (act_q - act_offset_);
 }
 
 bool Arm::LimitJoint(VectorXd& q) {

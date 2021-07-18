@@ -37,8 +37,8 @@ void Motion::UpdateMotion(double time, const RobotRef& ref, const RobotState& st
         out.arm = state.arm;
     } else {
         mode = Mode::ACTIVE;
-        SlideSpin(time, ref, state, out);
-        //Walk(time, out);
+        //SlideSpin(time, ref, state, out);
+        Walk(time, out);
     }
     previous_mode_ = mode;
 }

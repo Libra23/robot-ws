@@ -50,6 +50,7 @@ class Arm {
     VectorXd q_max_;
     VectorXd q_pre_;
     MatrixXd act_gain_;
+    MatrixXd act_gain_inverse_;
     VectorXd act_offset_;
     bool LimitJoint(VectorXd& q);
 };
