@@ -1,4 +1,4 @@
-# src/control
+# src/kinematic
 message("!!! src/kinematic !!!")
 
 # make static library
