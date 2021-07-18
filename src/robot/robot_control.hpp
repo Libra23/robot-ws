@@ -1,7 +1,7 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-#include "robot_data.hpp"
+#include "control_data/robot_data.hpp"
 #include "arm_control.hpp"
 
 #include "common/thread.hpp"

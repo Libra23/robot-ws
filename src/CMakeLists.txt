@@ -7,6 +7,7 @@ if(${ESP_PLATFORM})
     idf_component_register(SRCS "app_main.cpp" INCLUDE_DIRS ".")
     # subdirectory
     add_subdirectory(algorithm)
+    add_subdirectory(control_data)
     add_subdirectory(common)
     add_subdirectory(robot)
     add_subdirectory(io_interface)

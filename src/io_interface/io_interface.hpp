@@ -1,7 +1,7 @@
 #ifndef IO_INTERFACE_H
 #define IO_INTERFACE_H
 
-#include "io_data.hpp"
+#include "control_data/io_data.hpp"
 #include "gpio_handler.hpp"
 #include "serial_servo.hpp"
 

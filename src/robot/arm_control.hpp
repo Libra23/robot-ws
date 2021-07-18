@@ -4,7 +4,7 @@
 #include "algorithm/math_const.hpp"
 #include "kinematics/kinematic_base.hpp"
 #include "kinematics/pupper_kinematic.hpp"
-#include "robot_data.hpp"
+#include "control_data/robot_data.hpp"
 #include <memory>
 
 struct JointConfig {

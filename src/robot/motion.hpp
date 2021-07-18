@@ -1,7 +1,7 @@
 #ifndef MOTION_H
 #define MOTION_H
 
-#include "robot_data.hpp"
+#include "control_data/robot_data.hpp"
 #include "algorithm/math_const.hpp"
 
 struct MotionParam {
