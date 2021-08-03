@@ -1,7 +1,7 @@
 # src
 message("!!! src !!!")
 
-if(DEFINED ENV{IDF_PATH})
+if(ESP_PLATFORM)
     message("!!! ESP_PLATFORM !!!")
     # create object
     idf_component_register(SRCS "app_main.cpp" INCLUDE_DIRS ".")

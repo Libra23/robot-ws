@@ -2,7 +2,7 @@
 
 #cmake
 echo "----------cmake----------"
-cmake -B build
+cmake -B build -G Ninja
 
 #build
 echo "----------build----------"
