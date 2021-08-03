@@ -1,6 +1,8 @@
 #include "io_interface.hpp"
 #include "esp_log.h"
 
+#include "common/memory.hpp"
+
 //#define IO_INTERFACE_DEBUG
 #ifdef IO_INTERFACE_DEBUG
 #define IO_LOG(...) ESP_LOGI(__VA_ARGS__)
@@ -67,10 +69,10 @@ void IoInterface::UpdateOutput(const OutputState& state) {
         if (serial_servo_state.id < 0) {
             // do nothing
         } else if (serial_servo_state.enable) {
-            double act_q = serial_servo_.SetPosition(serial_servo_state.id, serial_servo_state.act_q);
+            serial_servo_.SetPosition(serial_servo_state.id, serial_servo_state.act_q);
             IO_DEBUG_LOG("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
         } else {
-            double act_q = serial_servo_.FreePosition(serial_servo_state.id);
+            serial_servo_.FreePosition(serial_servo_state.id);
             IO_DEBUG_LOG("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
         }
     }

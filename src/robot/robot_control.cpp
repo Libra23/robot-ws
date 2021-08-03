@@ -1,6 +1,8 @@
 #include "robot_control.hpp"
 #include "esp_log.h"
 
+#include "common/memory.hpp"
+
 //#define ROBOT_CONTROL_DEBUG
 #ifdef ROBOT_CONTROL_DEBUG
 #define ROBOT_LOG(...) ESP_LOGI(__VA_ARGS__)
@@ -31,7 +33,6 @@ void Robot::Thread() {
         arm_[i].Config(config_.arm_config[i], i);
     }
 
-    int count_ms = 0;
     while(true) {
         // input
         InputState input;
@@ -205,7 +206,7 @@ void Robot::UpdateState(RobotState& state) {
 void Robot::UpdateRef(RobotOut& out) {
     for (size_t i = 0; i < arm_.size(); i++) {
         bool is_joint_limit = false;
-        bool ik_ret = arm_[i].InverseKinematic(out.arm[i].trans, out.body.trans, is_joint_limit, out.arm[i].q);
+        arm_[i].InverseKinematic(out.arm[i].trans, out.body.trans, is_joint_limit, out.arm[i].q);
     }
 }
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.5)
 
 #include cmake
 if(DEFINED ENV{IDF_PATH})
@@ -8,7 +8,7 @@ if(DEFINED ENV{IDF_PATH})
 endif()
 
 # set the project name and version
-project(robot-ws CXX)
+project(robot-ws)
 
 if(NOT DEFINED ENV{IDF_PATH})
   message("!!! CXX !!!")

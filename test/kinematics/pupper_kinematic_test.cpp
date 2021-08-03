@@ -4,7 +4,7 @@
 #include "algorithm/smooth_path.hpp"
 #include <memory>
 
-#define PLOT
+//#define PLOT
 #ifdef PLOT
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;

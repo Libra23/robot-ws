@@ -2,7 +2,6 @@
 #define IO_DATA_H
 
 #include <array>
-#include "common/memory.hpp"
 
 #define NUM_GPIO            1
 #define NUM_SERIAL_SERVO    12

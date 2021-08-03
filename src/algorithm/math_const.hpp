@@ -15,6 +15,8 @@
 
 #define GRAVITY_CONSTANT 9.8
 
+#define NUM_WRENCH 6
+
 enum Axis {
   X,
   Y,
