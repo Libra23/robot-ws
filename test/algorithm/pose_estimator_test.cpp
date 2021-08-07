@@ -3,8 +3,6 @@
 #include "pose_estimator.hpp"
 //#include <matplotlib/matplotlibcpp.h>
 
-constexpr double TOLERANCE = 1e-6;
-
 class PoseEstimatorTest : public ::testing::Test {
     protected:
     PoseEstimatorTest() {

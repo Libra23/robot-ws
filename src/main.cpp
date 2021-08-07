@@ -2,7 +2,7 @@
 #include "kinematics/kinematic_base.hpp"
 #include "kinematics/pupper_kinematic.hpp"
 
-int main () {
+extern "C" void app_main() {
     std::cout << "Hello!" << std::endl;
     std::unique_ptr<KinematicBase> kinematic_;
 
@@ -30,7 +30,7 @@ int main () {
     q_standard << 0.0, 0.0, 0.0;
     q_standard *= DEG_TO_RAD;
     VectorXd q_ik = VectorXd::Zero(NUM_PUPPER_JOINT);
-    bool ik_ret = kinematic_->Inverse(tip_trans_expect, Affine3d::Identity(), q_standard, q_ik);
+    kinematic_->Inverse(tip_trans_expect, Affine3d::Identity(), q_standard, q_ik);
     std::cout << "q_ik = " << q_ik.transpose() * RAD_TO_DEG << std::endl;
 
     tip_trans_expect.translation()[Z] -= 0;
@@ -39,6 +39,9 @@ int main () {
     std::cout << q_ik.transpose() * RAD_TO_DEG << std::endl;
     kinematic_->Forward(q_ik, Affine3d::Identity(), tip_trans_expect);
     std::cout << tip_trans_expect.translation().transpose() << std::endl;
+}
 
+int main () {
+    app_main();
     return 0;
 }

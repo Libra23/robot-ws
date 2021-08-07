@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 #include "kinematic_base.hpp"
 
-constexpr double TOLERANCE = 0.1;
-
 class KinematicTest : public ::testing::Test {
     protected:
     KinematicTest() {
@@ -56,7 +54,7 @@ TEST_F(KinematicTest, CheckInverseKinematic) {
     q_standard << 45.0, 30.0, 60.0;
     q_standard *= DEG_TO_RAD;
     VectorXd q_ik = VectorXd::Zero(3);
-    bool ik_ret = kinematic_.Inverse(tip_trans_expect, Affine3d::Identity(), q_standard, q_ik);
+    kinematic_.Inverse(tip_trans_expect, Affine3d::Identity(), q_standard, q_ik);
     EXPECT_TRUE(false);
     std::cout << q_ik.transpose() * RAD_TO_DEG << std::endl;
     for (int i = 0; i < q_expect.size(); i++) {

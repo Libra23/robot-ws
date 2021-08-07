@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd build/src
-./main.out
+cd build/bin
+./robot-ws.out
 cd ../..

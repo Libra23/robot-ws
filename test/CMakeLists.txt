@@ -1,4 +1,5 @@
 # test
+message("!!! test !!!")
 
 # enable ctest
 enable_testing()

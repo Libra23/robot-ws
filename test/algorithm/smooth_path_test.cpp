@@ -7,8 +7,6 @@
 namespace plt = matplotlibcpp;
 #endif
 
-constexpr double TOLERANCE = 1e-6;
-
 TEST(SmoothingPathTest, Check) {
     SmoothingPath<double> path;
 

@@ -121,8 +121,6 @@ TEST_F(PupperKinematicTest, CheckInverseKinematic) {
  * @test check dynamics
  */
 TEST_F(PupperKinematicTest, CheckDynamics) {
-    constexpr bool SHOW_SPRING_ASSIST = true;
-
     const double mass = 0.5;
     const double sample_time = 1e-2;
     const double resolution = 3000;
@@ -156,7 +154,7 @@ TEST_F(PupperKinematicTest, CheckDynamics) {
         base_trans.translation() = ref_pos;
         // ik
         VectorXd q_ik = VectorXd::Zero(NUM_PUPPER_JOINT);
-        bool ret = kinematic_->Inverse(tip_trans, base_trans, q, q_ik);
+        kinematic_->Inverse(tip_trans, base_trans, q, q_ik);
         const MatrixXd jacobian = kinematic_->GetJacobian(q_ik, base_trans);
         q = q_ik;
         if (path.DoSmoothing()) {
@@ -187,6 +185,7 @@ TEST_F(PupperKinematicTest, CheckDynamics) {
 
         #ifdef PLOT
         time[i] = t;
+        constexpr bool SHOW_SPRING_ASSIST = true;
         constexpr bool SHOW_EFFORT= false;
         constexpr bool SHOW_QD = false;
         constexpr bool SHOW_BODY = false;
