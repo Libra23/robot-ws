@@ -13,9 +13,9 @@ if(ESP_PLATFORM)
     add_subdirectory(robot)
     add_subdirectory(io_interface)
     add_subdirectory(kinematics)
-    # add_subdirectory(mainte)
+    add_subdirectory(mainte)
     # register library
-    target_link_libraries(${COMPONENT_LIB} algorithm common robot io_interface kinematics)
+    target_link_libraries(${COMPONENT_LIB} algorithm common robot io_interface kinematics mainte)
 else()
     # create excute object
     add_executable(${CMAKE_PROJECT_NAME}.out main.cpp)

@@ -1,8 +1,8 @@
 #include "mainte.hpp"
-
+#include "nvs_flash.h"
 #include "esp_wifi.h"
-#include "esp_event.h"
 #include "esp_log.h"
+#include <string.h>
 //#define MAINTE_DEBUG
 #ifdef MAINTE_DEBUG
 #define MAINTE_LOG(...) ESP_LOGI(__VA_ARGS__)
@@ -14,6 +14,7 @@
 static const char *TAG = "Mainte";
 
 Maintenance::Maintenance() {
+    MAINTE_LOG(TAG, "Constructor");
 }
 
 bool Maintenance::Initialize() {
@@ -42,59 +43,94 @@ bool Maintenance::Initialize() {
         MAINTE_DEBUG_LOG(TAG, "Fail to initialize stack. error id = %d", error);
         return false;
     }
+    MAINTE_DEBUG_LOG(TAG, "Complete to prepare stack");
 
-    // Create default WIFI STA.
-    esp_netif_create_default_wifi_sta();
+    // Create default WIFI AP
+    esp_netif_create_default_wifi_ap();
 
     // Create default loop for wifi event handler
     error = esp_event_loop_create_default();
     if (error != 0) {
         MAINTE_DEBUG_LOG(TAG, "Fail to create default loop. error id = %d", error);
         return false;
+    } else {
+        MAINTE_DEBUG_LOG(TAG, "Complete to create default loop");
     }
 
-    esp_event_handler_instance_t instance_any_id;
-    esp_event_handler_instance_t instance_got_ip;
-    // Regist instance of event handler to default loop
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
-                                                        ESP_EVENT_ANY_ID,
-                                                        &event_handler,
-                                                        NULL,
-                                                        &instance_any_id));
-    ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT,
-                                                        IP_EVENT_STA_GOT_IP,
-                                                        &event_handler,
-                                                        NULL,
-                                                        &instance_got_ip));
+    error = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &CallBack, NULL, NULL);
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to register callback function. error id = %d", error);
+        return false;
+    } else {
+        MAINTE_DEBUG_LOG(TAG, "Complete to register callback function");
+    }
 
-    ESP_ERROR_CHECK(esp_wifi_init(&WIFI_INIT_CONFIG_DEFAULT()));
-    wifi_config_t wifi_config = {
-        .sta = {
-            .ssid = EXAMPLE_ESP_WIFI_SSID,
-            .password = EXAMPLE_ESP_WIFI_PASS,
-            /* Setting a password implies station will connect to all security modes including WEP/WPA.
-             * However these modes are deprecated and not advisable to be used. Incase your Access point
-             * doesn't support WPA2, these mode can be enabled by commenting below line */
-	     .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+    // Initialize wifi
+    const wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    error = esp_wifi_init(&cfg);
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to initialize wifi. error id = %d", error);
+        return false;
+    } else {
+        MAINTE_DEBUG_LOG(TAG, "Complete to initialize wifi");
+    }
 
-            .pmf_cfg = {
-                .capable = true,
-                .required = false
-            },
-        },
-    };
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
-    ESP_ERROR_CHECK(esp_wifi_start() );
+    // Set Mode
+    error = esp_wifi_set_mode(WIFI_MODE_AP);
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to set wifi mode. error id = %d", error);
+        return false;
+    } else {
+        MAINTE_DEBUG_LOG(TAG, "Complete to set wifi mode.");
+    }
 
+    // Set config
+    wifi_config_t wifi_config;
+    strcpy((char*)(wifi_config.ap.ssid), "esp-ssid");
+    wifi_config.ap.ssid_len = strlen("esp-ssid");
+    strcpy((char*)(wifi_config.ap.password), "mypassword");
+    wifi_config.ap.channel = 1;
+    wifi_config.ap.max_connection = 4;
+    wifi_config.ap.authmode = WIFI_AUTH_OPEN;
+    error = esp_wifi_set_config(WIFI_IF_AP, &wifi_config);
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to set wifi config. error id = %d", error);
+        return false;
+    } else {
+        MAINTE_DEBUG_LOG(TAG, "Complete to set wifi config wifi.");
+    }
+
+    // Start
+    error = esp_wifi_start();
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to start wifi. error id = %d", error);
+        return false;
+    } else {
+        MAINTE_DEBUG_LOG(TAG, "Start wifi");
+    }
     MAINTE_LOG(TAG, "wifi_init_sta finished.");
     
-    s_wifi_event_group_ = xEventGroupCreate();
+    // s_wifi_event_group_ = xEventGroupCreate();
 
+    return true;
+}
+
+void Maintenance::CallBack(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+    if (event_id == WIFI_EVENT_AP_STACONNECTED) {
+        wifi_event_ap_staconnected_t* event = (wifi_event_ap_staconnected_t*) event_data;
+        MAINTE_LOG(TAG, "station join, AID=%d", event->aid);
+    } else if (event_id == WIFI_EVENT_AP_STADISCONNECTED) {
+        wifi_event_ap_stadisconnected_t* event = (wifi_event_ap_stadisconnected_t*) event_data;
+        MAINTE_LOG(TAG, "station leave, AID=%d", event->aid);
+    }
 }
 
 void Maintenance::Thread() {
-
+    MAINTE_LOG(TAG, "Thread");
+    Initialize();
+    while(true) {
+        delay(10);
+    }
 }
 
 /**
