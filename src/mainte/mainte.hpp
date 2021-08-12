@@ -4,11 +4,13 @@
 class Maintenance {
     public:
     Maintenance();
-    bool Initialize();
-    static void CallBack(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
+    bool StartConnection();
+    bool StopConnection();
+    bool SetStaticIPAddress();
+    static void CallBackConnection(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
     void Thread();
     private:
-    EventGroupHandle_t s_wifi_event_group_;
+    esp_netif_t* p_netif_;
 };
 
 class MaintenanceMain {

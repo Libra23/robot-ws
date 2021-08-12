@@ -9,6 +9,9 @@ do
         '-f')
             arg_f=1
             ;;
+        '-m')
+            arg_m=1
+            ;;
     esac
 done
 
@@ -33,7 +36,7 @@ ninja -C build_esp32
 if [[ ${arg_f} -eq 1 ]]; then
     echo "----------flash----------"
     cd build_esp32
-    # ESPPORT=/dev/tty.usbserial-3D528D75A9 ninja flash
-    ESPPORT=/dev/tty.usbserial-9D52F70E93 ninja flash
+    #ESPPORT=/dev/tty.usbserial-3D528D75A9 ESPBAUD=500000 ninja flash
+    ESPPORT=/dev/tty.usbserial-9D52F70E93 ESPBAUD=500000 ninja flash
     cd ..
 fi

@@ -2,6 +2,7 @@
 #include "nvs_flash.h"
 #include "esp_wifi.h"
 #include "esp_log.h"
+#include "lwip/sockets.h"
 #include <string.h>
 //#define MAINTE_DEBUG
 #ifdef MAINTE_DEBUG
@@ -13,11 +14,13 @@
 #endif
 static const char *TAG = "Mainte";
 
+#define PORT 3333
+
 Maintenance::Maintenance() {
     MAINTE_LOG(TAG, "Constructor");
 }
 
-bool Maintenance::Initialize() {
+bool Maintenance::StartConnection() {
     int error = 0;
     // Init NVS for wifi
     error = nvs_flash_init();
@@ -45,25 +48,15 @@ bool Maintenance::Initialize() {
     }
     MAINTE_DEBUG_LOG(TAG, "Complete to prepare stack");
 
-    // Create default WIFI AP
-    esp_netif_create_default_wifi_ap();
-
     // Create default loop for wifi event handler
     error = esp_event_loop_create_default();
     if (error != 0) {
         MAINTE_DEBUG_LOG(TAG, "Fail to create default loop. error id = %d", error);
         return false;
-    } else {
-        MAINTE_DEBUG_LOG(TAG, "Complete to create default loop");
     }
 
-    error = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &CallBack, NULL, NULL);
-    if (error != 0) {
-        MAINTE_DEBUG_LOG(TAG, "Fail to register callback function. error id = %d", error);
-        return false;
-    } else {
-        MAINTE_DEBUG_LOG(TAG, "Complete to register callback function");
-    }
+    // Create default WIFI AP
+    p_netif_ = esp_netif_create_default_wifi_ap();
 
     // Initialize wifi
     const wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -71,8 +64,14 @@ bool Maintenance::Initialize() {
     if (error != 0) {
         MAINTE_DEBUG_LOG(TAG, "Fail to initialize wifi. error id = %d", error);
         return false;
-    } else {
-        MAINTE_DEBUG_LOG(TAG, "Complete to initialize wifi");
+    }
+
+    // Register callback
+    error = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &CallBackConnection, NULL, NULL);
+    error |= esp_event_handler_instance_register(IP_EVENT, IP_EVENT_AP_STAIPASSIGNED, &CallBackConnection, NULL, NULL);
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to register callback function. error id = %d", error);
+        return false;
     }
 
     // Set Mode
@@ -80,8 +79,6 @@ bool Maintenance::Initialize() {
     if (error != 0) {
         MAINTE_DEBUG_LOG(TAG, "Fail to set wifi mode. error id = %d", error);
         return false;
-    } else {
-        MAINTE_DEBUG_LOG(TAG, "Complete to set wifi mode.");
     }
 
     // Set config
@@ -96,8 +93,6 @@ bool Maintenance::Initialize() {
     if (error != 0) {
         MAINTE_DEBUG_LOG(TAG, "Fail to set wifi config. error id = %d", error);
         return false;
-    } else {
-        MAINTE_DEBUG_LOG(TAG, "Complete to set wifi config wifi.");
     }
 
     // Start
@@ -105,32 +100,169 @@ bool Maintenance::Initialize() {
     if (error != 0) {
         MAINTE_DEBUG_LOG(TAG, "Fail to start wifi. error id = %d", error);
         return false;
-    } else {
-        MAINTE_DEBUG_LOG(TAG, "Start wifi");
     }
-    MAINTE_LOG(TAG, "wifi_init_sta finished.");
-    
-    // s_wifi_event_group_ = xEventGroupCreate();
 
+    MAINTE_LOG(TAG, "Complete to start.");
     return true;
 }
 
-void Maintenance::CallBack(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (event_id == WIFI_EVENT_AP_STACONNECTED) {
+bool Maintenance::StopConnection() {
+    int error = 0;
+    // Stop wifi
+    error = esp_wifi_stop();
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to stop wifi. error id = %d", error);
+        return false;
+    }
+    esp_netif_destroy_default_wifi(p_netif_);
+
+    // Delete wifi loop
+    error = esp_event_loop_delete_default();
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to delete wifi loop. error id = %d", error);
+        return false;
+    }
+
+    // Deinit
+    error = esp_netif_deinit();
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to deinitialize netif. error id = %d", error);
+        return false;
+    }
+
+    MAINTE_LOG(TAG, "Complete to stop.");
+    return true;
+}
+
+bool Maintenance::SetStaticIPAddress() {
+    int error = 0;
+    // Stop DHCP
+    error = tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP);
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to stop dhcp. error id = %d", error);
+        return false;
+    }
+
+    // Set IP
+    tcpip_adapter_ip_info_t ip_info;
+    IP4_ADDR(&ip_info.ip, 10,10,11,2);
+    IP4_ADDR(&ip_info.gw, 10,10,11,1);
+    IP4_ADDR(&ip_info.netmask, 255,255,255,0);
+    error = tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &ip_info);
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to set IP. error id = %d", error);
+        return false;
+    }
+
+    // Restart DHCP
+    error = tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
+    if (error != 0) {
+        MAINTE_DEBUG_LOG(TAG, "Fail to start dhcp. error id = %d", error);
+        return false;
+    }
+
+    // Check IP
+    tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &ip_info);
+    MAINTE_LOG(TAG, "Set static IP address Finished. IP = " IPSTR, IP2STR(&ip_info.ip));
+    return true;
+}
+
+void Maintenance::CallBackConnection(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STACONNECTED) {
         wifi_event_ap_staconnected_t* event = (wifi_event_ap_staconnected_t*) event_data;
-        MAINTE_LOG(TAG, "station join, AID=%d", event->aid);
-    } else if (event_id == WIFI_EVENT_AP_STADISCONNECTED) {
+        MAINTE_LOG(TAG, "station join=" MACSTR ", AID=%d", MAC2STR(event->mac), event->aid);
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STADISCONNECTED) {
         wifi_event_ap_stadisconnected_t* event = (wifi_event_ap_stadisconnected_t*) event_data;
-        MAINTE_LOG(TAG, "station leave, AID=%d", event->aid);
+        MAINTE_LOG(TAG, "station leave=" MACSTR ", AID=%d", MAC2STR(event->mac), event->aid);
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_START) {
+        MAINTE_LOG(TAG, "wifi ap start");
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STOP) {
+        MAINTE_LOG(TAG, "wifi ap stop");
+    } else if (event_base == IP_EVENT && event_id == IP_EVENT_AP_STAIPASSIGNED){
+        ip_event_ap_staipassigned_t* event = (ip_event_ap_staipassigned_t*) event_data;
+        MAINTE_LOG(TAG, "set ip=" IPSTR, IP2STR(&event->ip));
     }
 }
 
 void Maintenance::Thread() {
     MAINTE_LOG(TAG, "Thread");
-    Initialize();
+    bool is_ok = true;
+    is_ok &= StartConnection();
+    // is_ok &= SetStaticIPAddress();
+
+    // Wait unitil establish connection
+    esp_netif_sta_info_t station_info;
     while(true) {
-        delay(10);
+        wifi_sta_list_t wifi_sta_list;
+        esp_wifi_ap_get_sta_list(&wifi_sta_list);
+        tcpip_adapter_sta_list_t station_list;
+        tcpip_adapter_get_sta_list(&wifi_sta_list, &station_list);
+        
+        if (station_list.num > 0) {
+            station_info = station_list.sta[0];
+            MAINTE_LOG(TAG, "Station Address : " IPSTR " Mac Address : " MACSTR, IP2STR(&station_info.ip), MAC2STR(station_info.mac));
+            break;
+        }
+        delay(1000);
     }
+
+    // Set mainte server ip
+    struct sockaddr_in dest_addr;
+    dest_addr.sin_addr.s_addr = station_info.ip.addr;
+    dest_addr.sin_family = AF_INET;
+    dest_addr.sin_port = htons(PORT);
+
+    char rx_buffer[128];
+    const char *payload = "Message from ESP32 ";
+
+    while(true) {
+        // Prepare socket
+        int sock =  socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+        if (sock < 0) {
+            MAINTE_LOG(TAG, "Unable to create socket. errno id =  %d", errno);
+            break;
+        }
+        MAINTE_LOG(TAG, "Socket created, connecting to host.");
+
+        int err = connect(sock, (struct sockaddr *)&dest_addr, sizeof(sockaddr_in));
+        if (err != 0) {
+            ESP_LOGE(TAG, "Socket unable to connect. errno id = %d", errno);
+            break;
+        }
+        ESP_LOGI(TAG, "Successfully connect to Host.");
+
+        while(true) {
+            int err = send(sock, payload, strlen(payload), 0);
+            if (err < 0) {
+                ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+                break;
+            }
+
+            int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
+            // Error occurred during receiving
+            if (len < 0) {
+                ESP_LOGE(TAG, "recv failed: errno %d", errno);
+                break;
+            }
+            // Data received
+            else {
+                rx_buffer[len] = 0; // Null-terminate whatever we received and treat like a string
+                ESP_LOGI(TAG, "Received %d bytes", len);
+                ESP_LOGI(TAG, "%s", rx_buffer);
+            }
+            delay(2000);
+        }
+
+        if (sock != -1) {
+            ESP_LOGE(TAG, "Shutting down socket and restarting...");
+            shutdown(sock, 0);
+            close(sock);
+        }
+    }
+
+    StopConnection();
+    ESP_LOGE(TAG, "Kill Task");
+    vTaskDelete(NULL);
 }
 
 /**

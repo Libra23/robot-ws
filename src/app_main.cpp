@@ -21,9 +21,9 @@ extern "C" void app_main () {
 
     // run threads monitor
     while(true) {
-        std::cout << "robot_thread_margin = " << robot_main.StackMargin() << std::endl;
-        std::cout << "io_thread_margin = " << io_interface_main.StackMargin() << std::endl;
-        std::cout << "mainte_thread_margin = " << mainte_main.StackMargin() << std::endl;
+        //std::cout << "robot_thread_margin = " << robot_main.StackMargin() << std::endl;
+        //std::cout << "io_thread_margin = " << io_interface_main.StackMargin() << std::endl;
+        //std::cout << "mainte_thread_margin = " << mainte_main.StackMargin() << std::endl;
         delay(10000);
     }
 }
