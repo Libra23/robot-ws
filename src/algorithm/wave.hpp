@@ -8,13 +8,15 @@ enum WaveType {
     TRIANGLE,
 };
 
+#pragma pack(push, 1)
 struct WaveForm {
-    WaveType type;
+    int type;
     double amplitude;
     double base;
     double frequency;
     double phase;
 };
+#pragma pack(pop)
 
 class Wave {
     public:

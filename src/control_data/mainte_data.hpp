@@ -10,17 +10,17 @@ enum ControlMode {
     IK,
     ACT_FK
 };
-
+#pragma pack(push, 1)
 struct Reference {
-    std::array<std::array<WaveForm, NUM_JOINT>, NUM_ARM> fk;
-    std::array<std::array<WaveForm, NUM_WRENCH>, NUM_ARM> ik;
-    std::array<std::array<WaveForm, NUM_JOINT>, NUM_ARM> act_fk;
+    std::array<WaveForm, NUM_JOINT> fk;
+    std::array<WaveForm, NUM_WRENCH> ik;
+    std::array<WaveForm, NUM_JOINT> act_fk;
+    std::array<bool, NUM_JOINT> enable;
 };
-
-struct MainteData {
-    ControlMode control_mode;
-    Reference reference;
-    std::array<std::array<bool, NUM_JOINT>, NUM_ARM> enable;
+struct ControlData {
+    int control_mode;
+    std::array<Reference, NUM_ARM> reference;
 };
+#pragma pack(pop)
 
 #endif

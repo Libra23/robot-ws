@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "lwip/sockets.h"
 #include <string.h>
+#include "control_data/mainte_data.hpp"
 //#define MAINTE_DEBUG
 #ifdef MAINTE_DEBUG
 #define MAINTE_LOG(...) ESP_LOGI(__VA_ARGS__)
@@ -170,17 +171,17 @@ bool Maintenance::SetStaticIPAddress() {
 void Maintenance::CallBackConnection(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STACONNECTED) {
         wifi_event_ap_staconnected_t* event = (wifi_event_ap_staconnected_t*) event_data;
-        MAINTE_LOG(TAG, "station join=" MACSTR ", AID=%d", MAC2STR(event->mac), event->aid);
+        MAINTE_LOG(TAG, "Station join =" MACSTR ", AID=%d", MAC2STR(event->mac), event->aid);
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STADISCONNECTED) {
         wifi_event_ap_stadisconnected_t* event = (wifi_event_ap_stadisconnected_t*) event_data;
-        MAINTE_LOG(TAG, "station leave=" MACSTR ", AID=%d", MAC2STR(event->mac), event->aid);
+        MAINTE_LOG(TAG, "Station leave=" MACSTR ", AID=%d", MAC2STR(event->mac), event->aid);
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_START) {
-        MAINTE_LOG(TAG, "wifi ap start");
+        MAINTE_LOG(TAG, "WiFi ap start");
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_AP_STOP) {
-        MAINTE_LOG(TAG, "wifi ap stop");
+        MAINTE_LOG(TAG, "WiFi ap stop");
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_AP_STAIPASSIGNED){
         ip_event_ap_staipassigned_t* event = (ip_event_ap_staipassigned_t*) event_data;
-        MAINTE_LOG(TAG, "set ip=" IPSTR, IP2STR(&event->ip));
+        MAINTE_LOG(TAG, "Set ip=" IPSTR, IP2STR(&event->ip));
     }
 }
 
@@ -212,7 +213,8 @@ void Maintenance::Thread() {
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(PORT);
 
-    char rx_buffer[128];
+    
+    std::array<char, 2048> rx_buffer;
     const char *payload = "Message from ESP32 ";
 
     while(true) {
@@ -226,42 +228,43 @@ void Maintenance::Thread() {
 
         int err = connect(sock, (struct sockaddr *)&dest_addr, sizeof(sockaddr_in));
         if (err != 0) {
-            ESP_LOGE(TAG, "Socket unable to connect. errno id = %d", errno);
+            MAINTE_LOG(TAG, "Socket unable to connect. errno id = %d", errno);
             break;
         }
-        ESP_LOGI(TAG, "Successfully connect to Host.");
+        MAINTE_LOG(TAG, "Successfully connect to Host.");
 
         while(true) {
             int err = send(sock, payload, strlen(payload), 0);
             if (err < 0) {
-                ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+                MAINTE_LOG(TAG, "Error occurred during sending: errno %d", errno);
                 break;
             }
 
-            int len = recv(sock, rx_buffer, sizeof(rx_buffer) - 1, 0);
+            int len = recv(sock, rx_buffer.data(), rx_buffer.size(), 0);
             // Error occurred during receiving
             if (len < 0) {
-                ESP_LOGE(TAG, "recv failed: errno %d", errno);
+                MAINTE_LOG(TAG, "recv failed: errno %d", errno);
                 break;
             }
             // Data received
             else {
-                rx_buffer[len] = 0; // Null-terminate whatever we received and treat like a string
-                ESP_LOGI(TAG, "Received %d bytes", len);
-                ESP_LOGI(TAG, "%s", rx_buffer);
+                ControlData* control_data;
+                control_data = reinterpret_cast<ControlData*>(rx_buffer.data());
+                MAINTE_LOG(TAG, "Received %d bytes", len);
+                MAINTE_LOG(TAG, "control_mode = %d", control_data->control_mode);
             }
-            delay(2000);
+            delay(10000);
         }
 
         if (sock != -1) {
-            ESP_LOGE(TAG, "Shutting down socket and restarting...");
+            MAINTE_LOG(TAG, "Shutting down socket and restarting...");
             shutdown(sock, 0);
             close(sock);
         }
     }
 
     StopConnection();
-    ESP_LOGE(TAG, "Kill Task");
+    MAINTE_LOG(TAG, "Kill Task");
     vTaskDelete(NULL);
 }
 
@@ -274,7 +277,7 @@ MaintenanceMain::MaintenanceMain() {
 
 void MaintenanceMain::Run() {
     MAINTE_LOG("Maintenance Main", "Run");
-    th_.Start(MaintenanceMain::LaunchThread, "mainte_thread", 1, 4096, &maintenance_, 1);
+    th_.Start(MaintenanceMain::LaunchThread, "mainte_thread", 1, 8192, &maintenance_, 1);
 }
 
 uint32_t MaintenanceMain::StackMargin() {
