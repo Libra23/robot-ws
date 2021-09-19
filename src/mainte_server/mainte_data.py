@@ -6,6 +6,20 @@ from enum import *
 import json
 
 '''
+enum WaveType {
+    CONST,
+    SIN,
+    RECTANGLE,
+    TRIANGLE,
+};
+'''
+class WaveType(IntEnum):
+    CONST = 0
+    SIN = 1
+    RECTANGLE = 2
+    TRIANGLE = 3
+
+'''
 struct WaveForm {
     int type;
     double amplitude;
