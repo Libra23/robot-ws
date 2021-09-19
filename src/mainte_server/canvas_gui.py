@@ -7,10 +7,10 @@ import numpy as np
 from scipy import interpolate
 
 class Canvas(ttk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=None, title='reference canvas'):
         super().__init__(master)
         self.master = master
-        self.master.title('reference canvas')
+        self.master.title(title)
         self.width = 600
         self.height = 600
         self.create_widgets()
@@ -24,16 +24,12 @@ class Canvas(ttk.Frame):
 
     def create_widgets(self):
         # frame
-        self.canvas_frame = tkinter.Frame(self, bg='white', width=self.width * 1.05, height=self.height * 1.05)
+        self.canvas_frame = tkinter.Frame(self, bg='white')
         self.menu_frame =  tkinter.Frame(self, bg='white')
         # create canvas_frame widgets
         self.main_canvas = tkinter.Canvas(self.canvas_frame, bg='white', width=self.width, height=self.height, highlightthickness=0)
-        self.x_axis_canvas = tkinter.Canvas(self.canvas_frame, bg='white', width=self.width, height=self.height * 0.05, highlightthickness=0)
-        self.y_axis_canvas = tkinter.Canvas(self.canvas_frame, bg='white', width=self.width * 0.05, height=self.height, highlightthickness=0)
         # set canvas_frame widgets
-        self.main_canvas.grid(row = 0, column = 1)
-        self.x_axis_canvas.grid(row = 1, column = 1)
-        self.y_axis_canvas.grid(row = 0, column = 0)
+        self.main_canvas.grid(row = 0, column = 0)
         self.canvas_frame.pack()
         # create menu_frame widgets
         self.num_point = tkinter.StringVar()
