@@ -7,3 +7,9 @@ build_esp32/
 
 #esp32
 sdkconfig
+
+# mac
+.DS_Store
+
+#python
+*.pyc

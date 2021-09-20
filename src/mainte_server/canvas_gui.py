@@ -7,7 +7,7 @@ import numpy as np
 from scipy import interpolate
 
 class Canvas(ttk.Frame):
-    def __init__(self, master=None, title='reference canvas'):
+    def __init__(self, master, title, value):
         super().__init__(master)
         self.master = master
         self.master.title(title)
@@ -18,7 +18,8 @@ class Canvas(ttk.Frame):
         self.x_range = {'min' : 0.0, 'max' : int(self.num_point.get()) - 1, 'tick' : 1}
         self.y_range = {'min' : -90.0, 'max' : 90.0, 'tick' : 30.0}
         self.draw_grid()
-        self.points = [{'id' : i, 'value' : 0.0} for i in range(int(self.num_point.get()))]
+        self.init_points = [{'id' : i, 'value' : value[i]} for i in range(len(value))]
+        self.points = [{'id' : i, 'value' : value[i]} for i in range(len(value))]
         self.draw_point()
         self.draw_spline()
 
@@ -84,6 +85,10 @@ class Canvas(ttk.Frame):
             y_now = f(x_now)
             self.main_canvas.create_line(self.x_to_canvas(x_pre), self.y_to_canvas(y_pre), self.x_to_canvas(x_now), self.y_to_canvas(y_now), width=1.0, fill='red', tag="spline")
 
+    def get_points(self):
+        num_x_tick = int((self.x_range['max'] - self.x_range['min']) / self.x_range['tick']) + 1
+        return [self.points[i]['value'] for i in range(num_x_tick)]
+
     # Convert Function --->>>
     def x_to_canvas(self, x):
         return self.width / (self.x_range['max'] - self.x_range['min']) * (x - self.x_range['min'])
@@ -118,21 +123,11 @@ class Canvas(ttk.Frame):
 
     def ok_callback(self):
         print('call ok')
-        num_x_tick = int((self.x_range['max'] - self.x_range['min']) / self.x_range['tick']) + 1
-        x = [self.x_range['tick'] * i + self.x_range['min'] for i in range(num_x_tick)]
-        y = [self.points[i]['value'] for i in range(num_x_tick)]
-        f = interpolate.interp1d(x, y,kind="cubic")
-        num_spline = 200
-        y_list = []
-        for i in range(num_spline):
-            x_value = (self.x_range['max'] - self.x_range['min']) / num_spline * i
-            y_value = f(x_value)
-            y_list.append(y_value)
-            print(str(y_value) + ',', end="")
-        #self.master.destroy()
+        self.master.destroy()
 
     def cancal_callback(self):
         print('call cancel')
+        self.points = self.init_points
         self.master.destroy()
 
     def clear_callback(self):
