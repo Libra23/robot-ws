@@ -1,6 +1,7 @@
 #ifndef UART_HANDLER_H
 #define UART_HANDLER_H
 
+#include <stdint.h>
 #include <string>
 #include <vector>
 

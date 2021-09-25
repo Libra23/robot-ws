@@ -10,12 +10,14 @@ from canvas_gui import *
 
 NUM_JOINT = 4
 
-class Reference(ttk.Frame):
-    def __init__(self, master=None):
+class ReferenceGui(ttk.Frame):
+    def __init__(self, master, mode):
         super().__init__(master)
+        # init parameter
         self.master = master
-        self.master.title('reference')
-        # define parameter list
+        self.mode = mode
+        
+        self.canva_frame = [None for i in range(num_arm)]
         self.reference_list = [{'label' : 'Joint' + str(i),
                                 'type' : tkinter.StringVar(),
                                 'amp' : tkinter.StringVar(),
@@ -29,52 +31,56 @@ class Reference(ttk.Frame):
             reference['phase'].set('0.0')
         self.canvas_value_list = [[0 for i in range(10)] for j in range(NUM_JOINT)]
         self.canvas = [None for i in range(NUM_JOINT)]
+        # prepare frame
+        self.master.title('reference')
         self.create_widgets()
         self.pack()
 
     def create_widgets(self):
         # frame
-        self.option_frame = ttk.Frame(self)
-        self.reference_frame = ttk.Frame(self)
-        self.menu_frame =  ttk.Frame(self)
+        option_frame = ttk.Frame(self)
+        reference_frame = ttk.Frame(self)
+        menu_frame =  ttk.Frame(self)
         # create option_frame widgets
-        self.open_button = ttk.Button(self.option_frame, text='Open', command=self.open_callback, width=7)
-        self.save_button = ttk.Button(self.option_frame, text='Save', command=self.save_callback, width=7)
-        self.open_button.grid(row = 0, column = 0)
-        self.save_button.grid(row = 0, column = 1)
+        mode_label = ttk.Label(option_frame, text = 'Control Mode : ' + self.mode)
+        mode_label.grid(row = 0, column = 0)
+        open_button = ttk.Button(option_frame, text='Open', command=self.open_callback, width=7)
+        open_button.grid(row = 0, column = 1)
+        save_button = ttk.Button(option_frame, text='Save', command=self.save_callback, width=7)
+        save_button.grid(row = 0, column = 2)
         #set option_frame widgets
-        self.option_frame.pack(anchor = tkinter.E)
+        option_frame.pack(anchor = tkinter.E)
         # create reference_frame widgets
         wave_form_labels = ['Type', 'Amp', 'Base', 'Freq', 'Phase']
         for i in range(len(wave_form_labels)):
-            label = ttk.Label(self.reference_frame, text=wave_form_labels[i])
+            label = ttk.Label(reference_frame, text=wave_form_labels[i])
             label.grid(row = i + 1, column = 0)
         wave_type_labels = ['Const', 'Sin' ,'Rect', 'Tri', 'Canvas']
         for i in range(NUM_JOINT):
-            label = ttk.Label(self.reference_frame, text=self.reference_list[i]['label'])
-            wave_type_combo = ttk.Combobox(self.reference_frame, textvariable=self.reference_list[i]['type'], value=wave_type_labels, state="readonly", width=7)
+            label = ttk.Label(reference_frame, text=self.reference_list[i]['label'])
+            wave_type_combo = ttk.Combobox(reference_frame, textvariable=self.reference_list[i]['type'], value=wave_type_labels, state="readonly", width=7)
             wave_type_combo.current(0)
-            amp_spin = ttk.Spinbox(self.reference_frame, textvariable=self.reference_list[i]['amp'], from_=0.0,to=180.0,increment=0.1, width=7)
-            base_spin = ttk.Spinbox(self.reference_frame, textvariable=self.reference_list[i]['base'], from_=-180.0,to=180.0,increment=0.1, width=7)
-            freq_spin = ttk.Spinbox(self.reference_frame, textvariable=self.reference_list[i]['freq'], from_=0.0,to=20.0,increment=0.1, width=7)
-            phase_spin = ttk.Spinbox(self.reference_frame, textvariable=self.reference_list[i]['phase'], from_=-180.0,to=180.0,increment=0.1, width=7)
+            amp_spin = ttk.Spinbox(reference_frame, textvariable=self.reference_list[i]['amp'], from_=0.0,to=180.0,increment=0.1, width=7)
+            base_spin = ttk.Spinbox(reference_frame, textvariable=self.reference_list[i]['base'], from_=-180.0,to=180.0,increment=0.1, width=7)
+            freq_spin = ttk.Spinbox(reference_frame, textvariable=self.reference_list[i]['freq'], from_=0.0,to=20.0,increment=0.1, width=7)
+            phase_spin = ttk.Spinbox(reference_frame, textvariable=self.reference_list[i]['phase'], from_=-180.0,to=180.0,increment=0.1, width=7)
             label.grid(row = 0, column = i + 1)
             wave_type_combo.grid(row = 1, column = i + 1)
             amp_spin.grid(row = 2, column = i + 1)
             base_spin.grid(row = 3, column = i + 1)
             freq_spin.grid(row = 4, column = i + 1)
             phase_spin.grid(row = 5, column = i + 1)
-            canvas_button = ttk.Button(self.reference_frame, text='Canvas'+str(i), command=self.canvas_callback(i),width=7)
+            canvas_button = ttk.Button(reference_frame, text='Canvas'+str(i), command=self.canvas_callback(i),width=7)
             canvas_button.grid(row = 6, column = i + 1)
         # set reference_frame widgets
-        self.reference_frame.pack()
+        reference_frame.pack()
         # create menu_frame widgets
-        self.cancel_button = ttk.Button(self.menu_frame, text='Cancel', command=self.cancal_callback, width=7)
-        self.ok_button = ttk.Button(self.menu_frame, text='OK', command=self.ok_callback, width=7)
-        self.cancel_button.grid(row = 0, column = 0)
-        self.ok_button.grid(row = 0, column = 1)
+        cancel_button = ttk.Button(menu_frame, text='Cancel', command=self.cancal_callback, width=7)
+        ok_button = ttk.Button(menu_frame, text='OK', command=self.ok_callback, width=7)
+        cancel_button.grid(row = 0, column = 0)
+        ok_button.grid(row = 0, column = 1)
         #set menu_frame widgets
-        self.menu_frame.pack(anchor = tkinter.E)
+        menu_frame.pack(anchor = tkinter.E)
 
     # Callback Function --->>>
     def open_callback(self):

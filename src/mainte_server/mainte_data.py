@@ -3,7 +3,6 @@
 
 from ctypes import *
 from enum import *
-import json
 
 '''
 enum WaveType {
@@ -29,6 +28,7 @@ struct WaveForm {
 };
 '''
 class WaveForm(Structure):
+    _pack_ = 1
     _fields_ = [
         ('type', c_int),
         ('amplitude', c_double),
@@ -42,8 +42,6 @@ class WaveForm(Structure):
         self.base = base
         self.frequency = frequency
         self.phase = phase
-    def as_dictionary(self):
-        return dict((f, getattr(self, f)) for f, _ in self._fields_)
 
 '''
 struct Reference {
@@ -56,6 +54,7 @@ struct Reference {
 NUM_JOINT = 3
 NUM_WRENCH = 6
 class Reference(Structure):
+    _pack_ = 1
     _fields_ = [
         ('fk', WaveForm * NUM_JOINT),
         ('ik', WaveForm * NUM_WRENCH),
@@ -69,13 +68,6 @@ class Reference(Structure):
             self.enable[i] = True
         for i in range(NUM_WRENCH):
             self.ik[i] = WaveForm(0, 0.0, 0.0, 0.0, 0.0)
-    def as_dictionary(self):
-        d = {}
-        d['fk'] = [self.fk[i].as_dictionary() for i in range(NUM_JOINT)]
-        d['ik'] = [self.ik[i].as_dictionary() for i in range(NUM_WRENCH)]
-        d['act_fk'] = [self.act_fk[i].as_dictionary() for i in range(NUM_JOINT)]
-        d['enable'] = [self.enable[i] for i in range(NUM_JOINT)]
-        return d
 
 '''
 enum ControlMode {
@@ -97,6 +89,7 @@ struct ControlData {
 '''
 NUM_ARM = 3
 class ControlData(Structure):
+    _pack_ = 1
     _fields_ = [
         ('control_mode', c_int), 
         ('reference', Reference * NUM_ARM)
@@ -105,15 +98,11 @@ class ControlData(Structure):
         self.control_mode = ControlMode.FK
         for i in range(NUM_ARM):
             self.reference[i] = Reference()
-    def as_dictionary(self):
-        d = {}
-        d['control_mode'] = self.control_mode
-        d['reference'] =[self.reference[i].as_dictionary() for i in range(NUM_ARM)]
-        return d
 
 if __name__ == '__main__':
     # check wave
     wave_form = WaveForm(0, 0.0, 0.0, 0.0, 0.0)
+    
     # print(wave_form.as_dictionary())
 
     # check reference
@@ -122,6 +111,4 @@ if __name__ == '__main__':
 
     # check control data
     control_data = ControlData()
-    # print(control_data.as_dictionary())
-
-    print(json.dumps(control_data.as_dictionary()))
+    # print(control_data.as_dictionary()) 

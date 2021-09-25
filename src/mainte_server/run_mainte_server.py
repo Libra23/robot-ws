@@ -4,7 +4,7 @@
 import socket
 import sys
 from mainte_data import *
-import ctypes as c
+from mainte_server_gui import *
 
 server_ip = "0.0.0.0"
 server_port = 3333
@@ -14,6 +14,8 @@ buffer_size = 1024
 tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcp_server.bind((server_ip, server_port))
 tcp_server.listen(listen_num)
+
+
 
 control_data = ControlData()
 
