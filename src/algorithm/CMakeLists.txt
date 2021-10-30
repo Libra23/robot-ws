@@ -7,3 +7,4 @@ add_library(algorithm STATIC ${SRCS})
 
 # link library
 target_include_directories(algorithm PUBLIC ${CMAKE_SOURCE_DIR}/src/eigen)
+target_include_directories(algorithm PUBLIC ${CMAKE_SOURCE_DIR}/src/constant)

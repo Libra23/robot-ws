@@ -1,5 +1,4 @@
 #include "motion.hpp"
-#include "algorithm/math_const.hpp"
 
 Motion::Motion() {
 

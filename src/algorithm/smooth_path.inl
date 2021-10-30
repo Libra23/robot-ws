@@ -37,3 +37,23 @@ template <typename T>
 bool SmoothingPath<T>::DoSmoothing() {
     return do_smoothing_;
 }
+
+template <typename T>
+VeocityLimitter<T>::VeocityLimitter(double sampling_time) {
+    
+}
+
+template <typename T>
+void VeocityLimitter<T>::Set(const T& min, const T& max) {
+
+}
+
+template <typename T>
+T VeocityLimitter<T>::Appay(const T& q) {
+
+}
+
+template <typename T>
+T VeocityLimitter<T>::Get() const {
+
+}

@@ -1,5 +1,4 @@
 #include "kinematic_base.hpp"
-#include <iostream>
 
 KinematicBase::KinematicBase() {}
 

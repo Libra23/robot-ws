@@ -2,7 +2,7 @@
 #define MOTION_H
 
 #include "control_data/robot_data.hpp"
-#include "algorithm/math_const.hpp"
+#include "constant/math_const.hpp"
 
 struct MotionParam {
     double stride;

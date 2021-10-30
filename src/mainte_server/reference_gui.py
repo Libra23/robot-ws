@@ -17,7 +17,7 @@ class ReferenceGui(ttk.Frame):
         self.master = master
         self.mode = mode
         
-        self.canva_frame = [None for i in range(num_arm)]
+        self.canva_frame = [None for i in range(4)]
         self.reference_list = [{'label' : 'Joint' + str(i),
                                 'type' : tkinter.StringVar(),
                                 'amp' : tkinter.StringVar(),
@@ -96,7 +96,16 @@ class ReferenceGui(ttk.Frame):
                 self.reference_list[i]['freq'].set(obj[self.reference_list[i]['label']]['freq'])
                 self.reference_list[i]['phase'].set(obj[self.reference_list[i]['label']]['phase'])
                 self.canvas_value_list[i] = obj[self.reference_list[i]['label']]['canvas']
-        print(reference_file)
+                y = self.canvas_value_list[i]
+                x = [i for i in range(len(y))]
+                f = interpolate.interp1d(x, y,kind="cubic",fill_value="extrapolate")
+                num_spline = 100
+                for i in range(num_spline - 1):
+                    x_value = len(x) / num_spline * i
+                    y_value = f(x_value)
+                    print('{:.3f}, '.format(y_value), end="")
+                print("\n")
+        #print(reference_file)
 
     def save_callback(self):
         print('call save')
@@ -135,5 +144,5 @@ class ReferenceGui(ttk.Frame):
 
 if __name__ == '__main__':
     root = ThemedTk(theme='radiance')
-    app = Reference(master=root)
+    app = ReferenceGui(master=root, mode='FK')
     app.mainloop()

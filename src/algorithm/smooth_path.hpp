@@ -18,6 +18,19 @@ class SmoothingPath {
     bool do_smoothing_;
 };
 
+template<typename T>
+class VeocityLimitter {
+    public:
+    VeocityLimitter(double sampling_time);
+    void Set(const T& min, const T& max);
+    T Appay(const T& q);
+    T Get() const;
+
+    private:
+    T min_;
+    T max_;
+};
+
 #include "smooth_path.inl"
 
 #endif

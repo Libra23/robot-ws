@@ -1,5 +1,4 @@
 #include "pupper_kinematic.hpp"
-//#include <iostream>
 
 PupperKinematic::PupperKinematic() : KinematicBase() {
 

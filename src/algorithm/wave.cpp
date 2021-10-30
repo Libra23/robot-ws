@@ -1,6 +1,6 @@
 #include "wave.hpp"
-#include "math_const.hpp"
 #include "math_utility.hpp"
+#include "math_const.hpp"
 
 Wave::Wave() {
 

@@ -123,7 +123,16 @@ class Canvas(ttk.Frame):
 
     def ok_callback(self):
         print('call ok')
-        self.master.destroy()
+        num_x_tick = int((self.x_range['max'] - self.x_range['min']) / self.x_range['tick']) + 1
+        x = [self.x_range['tick'] * i + self.x_range['min'] for i in range(num_x_tick)]
+        y = [self.points[i]['value'] for i in range(num_x_tick)]
+        f = interpolate.interp1d(x, y,kind="cubic")
+        num_spline = 100
+        for i in range(num_spline):
+            x_value = (self.x_range['max'] - self.x_range['min']) / num_spline * i
+            y_value = f(x_value)
+            print('{:.3f}, '.format(y_value), end="")
+        #self.master.destroy()
 
     def cancal_callback(self):
         print('call cancel')

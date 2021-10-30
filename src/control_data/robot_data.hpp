@@ -1,45 +1,9 @@
 #ifndef ROBOT_DATA_H
 #define ROBOT_DATA_H
 
+#include "constant/robot_const.hpp"
 #include "algorithm/math_utility.hpp"
 #include <array>
-
-// Robot Type
-#define QUAD_DIAGONAL (100)
-#define QUAD_PUPPER (110)
-
-//#define ROBOT_TYPE QUAD_DIAGONAL
-#define ROBOT_TYPE QUAD_PUPPER
-
-inline int GetRobotType() {
-    return ROBOT_TYPE;
-}
-
-inline bool IsQuadDiagonal() {
-    if (GetRobotType() == QUAD_DIAGONAL) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-inline bool IsQuadPupper() {
-    if (GetRobotType() == QUAD_PUPPER) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-#define NUM_JOINT 3
-
-enum ArmId {
-    LEFT_FRONT,
-    LEFT_BACK,
-    RIGHT_FRONT,
-    RIGHT_BACK,
-    NUM_ARM
-};
 
 struct BodyState {
     Affine3d trans;
@@ -76,6 +40,5 @@ struct RobotOut {
     BodyState body;
     std::array<ArmState, NUM_ARM> arm;
 };
-
 
 #endif

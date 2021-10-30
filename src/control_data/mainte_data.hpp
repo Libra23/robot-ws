@@ -1,9 +1,10 @@
 #ifndef MAINTE_DATA_H
 #define MAINTE_DATA_H
 
-#include "robot_data.hpp"
-#include "algorithm/math_const.hpp"
+#include "constant/robot_const.hpp"
+#include "constant/math_const.hpp"
 #include "algorithm/wave.hpp"
+#include <array>
 
 enum ControlMode {
     FK,

@@ -1,7 +1,7 @@
 #ifndef ARM_CONTROLLER_H
 #define ARM_CONTROLLER_H
 
-#include "algorithm/math_const.hpp"
+#include "constant/math_const.hpp"
 #include "kinematics/kinematic_base.hpp"
 #include "kinematics/pupper_kinematic.hpp"
 #include "control_data/robot_data.hpp"

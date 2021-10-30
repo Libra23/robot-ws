@@ -87,7 +87,7 @@ struct ControlData {
     std::array<Reference, NUM_ARM> reference;
 };
 '''
-NUM_ARM = 3
+NUM_ARM = 4
 class ControlData(Structure):
     _pack_ = 1
     _fields_ = [

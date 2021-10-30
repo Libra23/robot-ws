@@ -1,10 +1,10 @@
 #ifndef KINEMATIC_BASE_H
 #define KINEMATIC_BASE_H
 
-#include "algorithm/math_const.hpp"
 #include "algorithm/math_utility.hpp"
-#include <vector>
+#include "constant/math_const.hpp"
 #include <array>
+#include <vector>
 
 enum JointType {
     ROTATE,
