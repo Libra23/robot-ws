@@ -4,29 +4,15 @@
 from ctypes import *
 from enum import *
 
-'''
-enum WaveType {
-    CONST,
-    SIN,
-    RECTANGLE,
-    TRIANGLE,
-};
-'''
+NUM_ARM = 4
+NUM_JOINT = 3
+NUM_WRENCH = 6
+
 class WaveType(IntEnum):
     CONST = 0
     SIN = 1
     RECTANGLE = 2
     TRIANGLE = 3
-
-'''
-struct WaveForm {
-    int type;
-    double amplitude;
-    double base;
-    double frequency;
-    double phase;
-};
-'''
 class WaveForm(Structure):
     _pack_ = 1
     _fields_ = [
@@ -42,17 +28,6 @@ class WaveForm(Structure):
         self.base = base
         self.frequency = frequency
         self.phase = phase
-
-'''
-struct Reference {
-    std::array<WaveForm, NUM_JOINT> fk;
-    std::array<WaveForm, NUM_WRENCH> ik;
-    std::array<WaveForm, NUM_JOINT> act_fk;
-    std::array<bool, NUM_JOINT> enable;
-};
-'''
-NUM_JOINT = 3
-NUM_WRENCH = 6
 class Reference(Structure):
     _pack_ = 1
     _fields_ = [
@@ -68,26 +43,10 @@ class Reference(Structure):
             self.enable[i] = True
         for i in range(NUM_WRENCH):
             self.ik[i] = WaveForm(0, 0.0, 0.0, 0.0, 0.0)
-
-'''
-enum ControlMode {
-    FK,
-    IK,
-    ACT_FK
-};
-'''
 class ControlMode(IntEnum):
     FK = 0
     IK = 1
     ACT_FK = 2
-
-'''
-struct ControlData {
-    int control_mode;
-    std::array<Reference, NUM_ARM> reference;
-};
-'''
-NUM_ARM = 4
 class ControlData(Structure):
     _pack_ = 1
     _fields_ = [

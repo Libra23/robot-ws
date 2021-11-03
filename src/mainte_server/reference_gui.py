@@ -7,32 +7,34 @@ from tkinter import filedialog
 from ttkthemes import ThemedTk
 import yaml
 from canvas_gui import *
-
-NUM_JOINT = 4
+from mainte_data import *
 
 class ReferenceGui(ttk.Frame):
-    def __init__(self, master, mode):
+    def __init__(self, master, mode, num_joint_per_arm):
         super().__init__(master)
         # init parameter
-        self.master = master
         self.mode = mode
-        
-        self.canva_frame = [None for i in range(4)]
-        self.reference_list = [{'label' : 'Joint' + str(i),
+        self.num_joint = num_joint_per_arm
+        # init frame parameter
+        self.canva_frame = [None for i in range(self.num_joint)]
+        labels = ['Joint' + str(i) for i in range(self.num_joint)]
+        if self.mode == 'IK':
+            labels = ['X', 'Y', 'Z', 'Roll', 'Pitch', 'Yaw']
+        self.reference_list = [{'label' : label,
                                 'type' : tkinter.StringVar(),
                                 'amp' : tkinter.StringVar(),
                                 'base' : tkinter.StringVar(),
                                 'freq' : tkinter.StringVar(),
-                                'phase' : tkinter.StringVar()}  for i in range(NUM_JOINT)]
+                                'phase' : tkinter.StringVar()}  for label in labels]
         for reference in self.reference_list:
             reference['amp'].set('0.0')
             reference['base'].set('0.0')
             reference['freq'].set('0.0')
             reference['phase'].set('0.0')
-        self.canvas_value_list = [[0 for i in range(10)] for j in range(NUM_JOINT)]
-        self.canvas = [None for i in range(NUM_JOINT)]
+        self.canvas_value_list = [[0 for i in range(10)] for j in range(self.num_joint)]
+        self.canvas = [None for i in range(self.num_joint)]
         # prepare frame
-        self.master.title('reference')
+        master.title('reference')
         self.create_widgets()
         self.pack()
 
@@ -56,7 +58,7 @@ class ReferenceGui(ttk.Frame):
             label = ttk.Label(reference_frame, text=wave_form_labels[i])
             label.grid(row = i + 1, column = 0)
         wave_type_labels = ['Const', 'Sin' ,'Rect', 'Tri', 'Canvas']
-        for i in range(NUM_JOINT):
+        for i in range(len(self.reference_list)):
             label = ttk.Label(reference_frame, text=self.reference_list[i]['label'])
             wave_type_combo = ttk.Combobox(reference_frame, textvariable=self.reference_list[i]['type'], value=wave_type_labels, state="readonly", width=7)
             wave_type_combo.current(0)
@@ -89,7 +91,7 @@ class ReferenceGui(ttk.Frame):
         reference_file = filedialog.askopenfilename(filetypes = type) 
         with open(reference_file, 'r') as file:
             obj = yaml.safe_load(file)
-            for i in range(NUM_JOINT):
+            for i in range(self.num_joint):
                 self.reference_list[i]['type'].set(obj[self.reference_list[i]['label']]['type'])
                 self.reference_list[i]['amp'].set(obj[self.reference_list[i]['label']]['amp'])
                 self.reference_list[i]['base'].set(obj[self.reference_list[i]['label']]['base'])
@@ -110,7 +112,7 @@ class ReferenceGui(ttk.Frame):
     def save_callback(self):
         print('call save')
         dict = {}
-        for i in range(NUM_JOINT):
+        for i in range(self.num_joint):
             label = self.reference_list[i]['label']
             type = self.reference_list[i]['type'].get()
             amp = self.reference_list[i]['amp'].get()

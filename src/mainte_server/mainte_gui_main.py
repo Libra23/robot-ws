@@ -7,20 +7,31 @@ from ttkthemes import ThemedTk
 from reference_gui import *
 from mainte_data import *
 
-class MainteServerGui(ttk.Frame):
+class MainteGuiMain:
+    def __init__(self):
+        print("MainteGui Constructor")
+    
+    def thread(self):
+        root = ThemedTk(theme='radiance')
+        app = MainteGui(master = root, num_arm = NUM_ARM, num_joint_per_arm = NUM_JOINT)
+        app.mainloop()
+
+class MainteGui(ttk.Frame):
     def __init__(self, master, num_arm, num_joint_per_arm):
         super().__init__(master)
+        # init parameter
+        self.num_arm = num_arm
+        self.num_joint = num_joint_per_arm
+        self.reference_frame = [None for i in range(self.num_arm)]
         # init frame parameter
-        self.master = master
         self.mode = tkinter.StringVar()
-        self.enable_states = [[tkinter.BooleanVar(value = True) for j in range(num_joint_per_arm)] for i in range(num_arm)]
-        self.reference_frame = [None for i in range(num_arm)]
+        self.enable_states = [[tkinter.BooleanVar(value = True) for j in range(self.num_joint)] for i in range(self.num_arm)]
         # prepare frame
-        self.master.title('MainteServer')
-        self.create_widgets(num_arm, num_joint_per_arm)
+        master.title('MainteServer')
+        self.create_widgets()
         self.pack()
         
-    def create_widgets(self, num_arm, num_joint_per_arm):
+    def create_widgets(self):
         # frame
         menu_frame =  ttk.Frame(self)
         main_frame = ttk.Frame(self)
@@ -33,18 +44,18 @@ class MainteServerGui(ttk.Frame):
         mode_combo.grid(row = 0, column = 1)
         menu_frame.pack(anchor = tkinter.E)
         # create main widgets
-        for i in range(num_arm):
+        for i in range(self.num_arm):
             # create arm widgets
             arm_frame = ttk.Frame(main_frame)
             label = ttk.Label(arm_frame, text = 'Arm (' + str(i) + ')')
             label.grid(row = 0, column = 0)
             control_button = ttk.Button(arm_frame, text = 'Control', command = self.control_callback(i), width = 7)
             control_button.grid(row = 1, column = 0)
-            for j in range(num_joint_per_arm):
+            for j in range(self.num_joint):
                 enable_button = ttk.Checkbutton(arm_frame, text = 'Joint(' + str(j) + ')', variable = self.enable_states[i][j])
                 enable_button.grid(row = 1, column = j + 1)
             reference_button = ttk.Button(arm_frame, text = 'R', command = self.reference_callback(i), width = 1)
-            reference_button.grid(row = 1, column = num_joint_per_arm + 1)
+            reference_button.grid(row = 1, column = self.num_joint + 1)
             arm_frame.pack()
             # create separator
             separator = ttk.Separator(main_frame)
@@ -54,21 +65,19 @@ class MainteServerGui(ttk.Frame):
     # Callback Function --->>>
     def control_callback(self, i):
         def callback():
-            print('call control ' + str(i))
-            mode = ControlMode[self.mode.get()]
-            print(mode)
+            print('Call control ' + str(i) + 'Mode = ' + self.mode.get())
         return callback
 
     def reference_callback(self, i):
         def callback():
-            print('call reference ' + str(i))
+            print('Call reference ' + str(i))
             if self.reference_frame[i] == None or not self.reference_frame[i].winfo_exists():
                 self.reference_frame[i] = tkinter.Toplevel(self)
-                ReferenceGui(self.reference_frame[i], self.mode.get())
+                ReferenceGui(self.reference_frame[i], self.mode.get(), self.num_joint)
         return callback
     # <<<--- Callback Function
 
 if __name__ == '__main__':
     root = ThemedTk(theme='radiance')
-    app = MainteServerGui(master = root, num_arm = 4, num_joint_per_arm = 4)
+    app = MainteGui(master = root, num_arm = 4, num_joint_per_arm = 4)
     app.mainloop()

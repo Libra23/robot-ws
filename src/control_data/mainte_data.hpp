@@ -22,6 +22,11 @@ struct ControlData {
     int control_mode;
     std::array<Reference, NUM_ARM> reference;
 };
+struct RobotInfoData {
+    std::array<double, XYZ> pos;
+    std::array<double, RPY> rot;
+    std::array<std::array<double, NUM_JOINT>, NUM_ARM> q;
+};
 #pragma pack(pop)
 
 #endif
