@@ -6,17 +6,16 @@ from tkinter import ttk
 from tkinter import filedialog
 from ttkthemes import ThemedTk
 import yaml
-from canvas_gui import *
 from mainte_data import *
 
 class ReferenceGui(ttk.Frame):
-    def __init__(self, master, mode, num_joint_per_arm):
+    def __init__(self, master, mode, arm_index, num_joint_per_arm, reference):
         super().__init__(master)
         # init parameter
         self.mode = mode
         self.num_joint = num_joint_per_arm
+        self.reference = reference
         # init frame parameter
-        self.canva_frame = [None for i in range(self.num_joint)]
         labels = ['Joint' + str(i) for i in range(self.num_joint)]
         if self.mode == 'IK':
             labels = ['X', 'Y', 'Z', 'Roll', 'Pitch', 'Yaw']
@@ -31,10 +30,8 @@ class ReferenceGui(ttk.Frame):
             reference['base'].set('0.0')
             reference['freq'].set('0.0')
             reference['phase'].set('0.0')
-        self.canvas_value_list = [[0 for i in range(10)] for j in range(self.num_joint)]
-        self.canvas = [None for i in range(self.num_joint)]
         # prepare frame
-        master.title('reference')
+        master.title('Reference' + str(arm_index))
         self.create_widgets()
         self.pack()
 
@@ -57,7 +54,7 @@ class ReferenceGui(ttk.Frame):
         for i in range(len(wave_form_labels)):
             label = ttk.Label(reference_frame, text=wave_form_labels[i])
             label.grid(row = i + 1, column = 0)
-        wave_type_labels = ['Const', 'Sin' ,'Rect', 'Tri', 'Canvas']
+        wave_type_labels = [type.name for type in WaveType]
         for i in range(len(self.reference_list)):
             label = ttk.Label(reference_frame, text=self.reference_list[i]['label'])
             wave_type_combo = ttk.Combobox(reference_frame, textvariable=self.reference_list[i]['type'], value=wave_type_labels, state="readonly", width=7)
@@ -72,8 +69,6 @@ class ReferenceGui(ttk.Frame):
             base_spin.grid(row = 3, column = i + 1)
             freq_spin.grid(row = 4, column = i + 1)
             phase_spin.grid(row = 5, column = i + 1)
-            canvas_button = ttk.Button(reference_frame, text='Canvas'+str(i), command=self.canvas_callback(i),width=7)
-            canvas_button.grid(row = 6, column = i + 1)
         # set reference_frame widgets
         reference_frame.pack()
         # create menu_frame widgets
@@ -84,6 +79,9 @@ class ReferenceGui(ttk.Frame):
         #set menu_frame widgets
         menu_frame.pack(anchor = tkinter.E)
 
+    def get_reference(self):
+        return self.reference
+
     # Callback Function --->>>
     def open_callback(self):
         print('call open')
@@ -91,57 +89,61 @@ class ReferenceGui(ttk.Frame):
         reference_file = filedialog.askopenfilename(filetypes = type) 
         with open(reference_file, 'r') as file:
             obj = yaml.safe_load(file)
-            for i in range(self.num_joint):
-                self.reference_list[i]['type'].set(obj[self.reference_list[i]['label']]['type'])
-                self.reference_list[i]['amp'].set(obj[self.reference_list[i]['label']]['amp'])
-                self.reference_list[i]['base'].set(obj[self.reference_list[i]['label']]['base'])
-                self.reference_list[i]['freq'].set(obj[self.reference_list[i]['label']]['freq'])
-                self.reference_list[i]['phase'].set(obj[self.reference_list[i]['label']]['phase'])
-                self.canvas_value_list[i] = obj[self.reference_list[i]['label']]['canvas']
-                y = self.canvas_value_list[i]
-                x = [i for i in range(len(y))]
-                f = interpolate.interp1d(x, y,kind="cubic",fill_value="extrapolate")
-                num_spline = 100
-                for i in range(num_spline - 1):
-                    x_value = len(x) / num_spline * i
-                    y_value = f(x_value)
-                    print('{:.3f}, '.format(y_value), end="")
-                print("\n")
-        #print(reference_file)
+            for i in range(len(self.reference_list)):
+                label = self.reference_list[i]['label']
+                self.reference_list[i]['type'].set(obj[self.mode][label]['type'])
+                self.reference_list[i]['amp'].set(obj[self.mode][label]['amp'])
+                self.reference_list[i]['base'].set(obj[self.mode][label]['base'])
+                self.reference_list[i]['freq'].set(obj[self.mode][label]['freq'])
+                self.reference_list[i]['phase'].set(obj[self.mode][label]['phase'])
 
     def save_callback(self):
         print('call save')
-        dict = {}
-        for i in range(self.num_joint):
+        data = {}
+        for i in range(len(self.reference_list)):
             label = self.reference_list[i]['label']
             type = self.reference_list[i]['type'].get()
             amp = self.reference_list[i]['amp'].get()
             base = self.reference_list[i]['base'].get()
             freq = self.reference_list[i]['freq'].get()
             phase = self.reference_list[i]['phase'].get()
-            dict[label] = {'type' : type, 'amp' : amp, 'base' : base, 'freq' : freq, 'phase' : phase}
-            if self.canvas[i] != None:
-                dict[label]['canvas'] = self.canvas[i].get_points()
-        type = [('Refernce File','*.yml')] 
-        reference_file = filedialog.asksaveasfilename(filetypes = type)
+            data[label] = {'type' : type, 'amp' : amp, 'base' : base, 'freq' : freq, 'phase' : phase}
+        file_type = [('Refernce File','*.yml')] 
+        reference_file = filedialog.asksaveasfilename(filetypes = file_type)
         print(reference_file)
         with open(reference_file, 'w') as file:
-            yaml.dump(dict, file)
+            out = {}
+            out[self.mode] = data
+            yaml.dump(out, file)
 
     def ok_callback(self):
-        print('call ok')
+        print('Call ok')
+        if self.mode == 'FK':
+            for i in range(len(self.reference_list)):
+                self.reference.fk[i].type = WaveType[self.reference_list[i]['type'].get()]
+                self.reference.fk[i].amplitude = float(self.reference_list[i]['amp'].get())
+                self.reference.fk[i].base = float(self.reference_list[i]['base'].get())
+                self.reference.fk[i].frequency = float(self.reference_list[i]['freq'].get())
+                self.reference.fk[i].phase = float(self.reference_list[i]['phase'].get())
+        elif self.mode == 'IK':
+            for i in range(len(self.reference_list)):
+                self.reference.ik[i].type = WaveType[self.reference_list[i]['type'].get()]
+                self.reference.ik[i].amplitude = float(self.reference_list[i]['amp'].get())
+                self.reference.ik[i].base = float(self.reference_list[i]['base'].get())
+                self.reference.ik[i].frequency = float(self.reference_list[i]['freq'].get())
+                self.reference.ik[i].phase = float(self.reference_list[i]['phase'].get())
+        elif self.mode == 'ACT_FK':
+            for i in range(len(self.reference_list)):
+                self.reference.act_fk[i].type = WaveType[self.reference_list[i]['type'].get()]
+                self.reference.act_fk[i].amplitude = float(self.reference_list[i]['amp'].get())
+                self.reference.act_fk[i].base = float(self.reference_list[i]['base'].get())
+                self.reference.act_fk[i].frequency = float(self.reference_list[i]['freq'].get())
+                self.reference.act_fk[i].phase = float(self.reference_list[i]['phase'].get())
         self.master.destroy()
 
     def cancal_callback(self):
-        print('call cancel')
+        print('Call cancel')
         self.master.destroy()
-
-    def canvas_callback(self, i):
-        print('call canvas')
-        def x():
-            dialog = tkinter.Toplevel(self)
-            self.canvas[i] = Canvas(dialog, 'Canvas'+str(i), self.canvas_value_list[i])
-        return x
     # <<<--- Callback Function
 
 if __name__ == '__main__':

@@ -22,10 +22,11 @@ class MainteGui(ttk.Frame):
         # init parameter
         self.num_arm = num_arm
         self.num_joint = num_joint_per_arm
-        self.reference_frame = [None for i in range(self.num_arm)]
+        self.control_data = ControlData()
         # init frame parameter
         self.mode = tkinter.StringVar()
         self.enable_states = [[tkinter.BooleanVar(value = True) for j in range(self.num_joint)] for i in range(self.num_arm)]
+        self.reference_frame = [None for i in range(self.num_arm)]
         # prepare frame
         master.title('MainteServer')
         self.create_widgets()
@@ -73,7 +74,7 @@ class MainteGui(ttk.Frame):
             print('Call reference ' + str(i))
             if self.reference_frame[i] == None or not self.reference_frame[i].winfo_exists():
                 self.reference_frame[i] = tkinter.Toplevel(self)
-                ReferenceGui(self.reference_frame[i], self.mode.get(), self.num_joint)
+                ReferenceGui(self.reference_frame[i], self.mode.get(), i, self.num_joint, self.control_data.reference[i])
         return callback
     # <<<--- Callback Function
 
