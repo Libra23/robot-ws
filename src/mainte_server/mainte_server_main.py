@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+from multiprocessing import Process
 import socket
-import threading
-
-class MainteServerMain(threading.Thread):
-    def __init__(self):
+class MainteServerMain(Process):
+    def __init__(self, input_queue, output_queue):
         super(MainteServerMain, self).__init__()
         print("MainteServer Constructor")
     

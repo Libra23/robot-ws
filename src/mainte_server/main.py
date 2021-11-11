@@ -3,11 +3,21 @@
 
 from mainte_server_main import *
 from mainte_gui_main import *
+from multiprocessing import Queue
 
-# server thread
-mainte_server_thread = MainteServerMain()
-mainte_server_thread.start()
+def main():
+    mq_gui_to_server = Queue()
+    mq_server_to_gui = Queue()
 
-# gui thread (main thread)
-mainte_gui = MainteGuiMain()
-mainte_gui.thread()
+    # server thread
+    mainte_server_thread = MainteServerMain(mq_gui_to_server, mq_server_to_gui)
+    mainte_server_thread.start()
+
+    # gui thread (main thread)
+    mainte_gui = MainteGuiMain()
+    mainte_gui.thread()
+
+    mainte_server_thread.join()
+
+if __name__ == '__main__':
+    main()

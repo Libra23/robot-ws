@@ -16,16 +16,23 @@ struct Reference {
     std::array<WaveForm, NUM_JOINT> fk;
     std::array<WaveForm, NUM_WRENCH> ik;
     std::array<WaveForm, NUM_JOINT> act_fk;
-    std::array<bool, NUM_JOINT> enable;
 };
+
 struct ControlData {
-    int control_mode;
-    std::array<Reference, NUM_ARM> reference;
+    uint8_t control_mode;
+    Reference reference;
+    std::array<uint8_t, NUM_JOINT> enable;
 };
-struct RobotInfoData {
+
+struct ArmInfo {
     std::array<double, XYZ> pos;
     std::array<double, RPY> rot;
-    std::array<std::array<double, NUM_JOINT>, NUM_ARM> q;
+    std::array<double, NUM_JOINT> q;
+};
+
+struct BodyInfo {
+    std::array<double, XYZ> pos;
+    std::array<double, RPY> rot;
 };
 #pragma pack(pop)
 

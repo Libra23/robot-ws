@@ -4,7 +4,7 @@
 #include "esp_log.h"
 #include "lwip/sockets.h"
 #include <string.h>
-#include "control_data/mainte_data.hpp"
+#include "control_data/packet_data.hpp"
 //#define MAINTE_DEBUG
 #ifdef MAINTE_DEBUG
 #define MAINTE_LOG(...) ESP_LOGI(__VA_ARGS__)
@@ -215,7 +215,7 @@ void Maintenance::Thread() {
 
     
     std::array<char, 2048> rx_buffer;
-    const char *payload = "Message from ESP32 ";
+    PacketRobotInfoReq robot_info_req;
 
     while(true) {
         // Prepare socket
@@ -234,7 +234,7 @@ void Maintenance::Thread() {
         MAINTE_LOG(TAG, "Successfully connect to Host.");
 
         while(true) {
-            int err = send(sock, payload, strlen(payload), 0);
+            int err = send(sock, &robot_info_req, sizeof(PacketRobotInfoReq), 0);
             if (err < 0) {
                 MAINTE_LOG(TAG, "Error occurred during sending: errno %d", errno);
                 break;

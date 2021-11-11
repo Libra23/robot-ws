@@ -10,7 +10,7 @@ enum WaveType {
 
 #pragma pack(push, 1)
 struct WaveForm {
-    int type;
+    unsigned char type;
     double amplitude;
     double base;
     double frequency;
