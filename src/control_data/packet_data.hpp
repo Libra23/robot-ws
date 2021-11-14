@@ -24,8 +24,7 @@ struct PacketControlDataReq {
     uint8_t arm_id;
     ControlData control_data;
     PacketControlDataReq() : 
-        header(sizeof(PacketControlDataReq), MAINTE_TO_ROBOT_CONTROL_DATA),
-        arm_id(ArmId::NUM_ARM) {}
+        header(sizeof(PacketControlDataReq), MAINTE_TO_ROBOT_CONTROL_DATA) {}
 };
 
 struct PacketRobotInfoReq {

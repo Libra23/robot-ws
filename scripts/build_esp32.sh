@@ -1,5 +1,7 @@
 #!/bin/bash
 
+TARGET_PORT=/dev/tty.usbserial-35DA80B4AB
+
 for opt in "$@"
 do
     case "$opt" in
@@ -37,6 +39,11 @@ if [[ ${arg_f} -eq 1 ]]; then
     echo "----------flash----------"
     cd build_esp32
     #ESPPORT=/dev/tty.usbserial-3D528D75A9 ESPBAUD=500000 ninja flash
-    ESPPORT=/dev/tty.usbserial-9D52F70E93 ESPBAUD=500000 ninja flash
+    ESPPORT=${TARGET_PORT} ESPBAUD=500000 ninja flash
     cd ..
+fi
+
+if [[ ${arg_m} -eq 1 ]]; then
+    echo "----------monitor----------"
+    screen ${TARGET_PORT} 115200
 fi

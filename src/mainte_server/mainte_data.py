@@ -54,14 +54,14 @@ class ControlData(Structure):
     _pack_ = 1
     _fields_ = [
         ('control_mode', c_uint8), 
-        ('reference', Reference)
+        ('reference', Reference),
         ('enable', c_uint8 * NUM_JOINT)
     ]
 class ArmInfo(Structure):
     _pack_ = 1
     _fields_ = [
         ('pos', c_double * XYZ), 
-        ('rot', c_double * RPY)
+        ('rot', c_double * RPY),
         ('q', c_double * NUM_JOINT)
     ]
 class BodyInfo(Structure):

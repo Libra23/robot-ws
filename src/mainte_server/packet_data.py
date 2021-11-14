@@ -52,6 +52,9 @@ class TcpHeader(Structure):
         ('size', c_uint32),
         ('type', c_uint8)
     ]
+    def __init__(self, size = 0, type = 0):
+        self.size = size
+        self.type = type
 class PacketControlDataReq(Structure):
     _pack_ = 1
     _fields_ = [
@@ -59,6 +62,8 @@ class PacketControlDataReq(Structure):
         ('arm_id', c_uint8),
         ('control_data', ControlData)
     ]
+    def __init__(self):
+        self.header = TcpHeader(sizeof(PacketControlDataReq), PacketType.MAINTE_TO_ROBOT_CONTROL_DATA)
 class PacketArmInfoReq(Structure):
     _pack_ = 1
     _fields_ = [
@@ -66,3 +71,7 @@ class PacketArmInfoReq(Structure):
         ('num_arm', c_uint8),
         ('num_joint', c_uint8)
     ]
+    def __init__(self):
+        self.header = TcpHeader(sizeof(PacketArmInfoReq), PacketType.ROBOT_TO_MAINTE_ARM_INFO)
+        self.num_arm = 0
+        self.num_joint = 0

@@ -213,10 +213,7 @@ void Maintenance::Thread() {
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(PORT);
 
-    
     std::array<char, 2048> rx_buffer;
-    PacketRobotInfoReq robot_info_req;
-
     while(true) {
         // Prepare socket
         int sock =  socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
@@ -234,6 +231,7 @@ void Maintenance::Thread() {
         MAINTE_LOG(TAG, "Successfully connect to Host.");
 
         while(true) {
+            PacketRobotInfoReq robot_info_req;
             int err = send(sock, &robot_info_req, sizeof(PacketRobotInfoReq), 0);
             if (err < 0) {
                 MAINTE_LOG(TAG, "Error occurred during sending: errno %d", errno);
@@ -248,10 +246,15 @@ void Maintenance::Thread() {
             }
             // Data received
             else {
-                ControlData* control_data;
-                control_data = reinterpret_cast<ControlData*>(rx_buffer.data());
                 MAINTE_LOG(TAG, "Received %d bytes", len);
-                MAINTE_LOG(TAG, "control_mode = %d", control_data->control_mode);
+                
+                TcpHeader tcp_header;
+                memmove(&tcp_header, rx_buffer.data(), sizeof(tcp_header));
+                if (tcp_header.type == MAINTE_TO_ROBOT_CONTROL_DATA) {
+                    PacketControlDataReq control_data_req;
+                    memmove(&control_data_req, rx_buffer.data(), sizeof(control_data_req));
+                    MAINTE_LOG(TAG, "arm_id = %d", control_data_req.arm_id);
+                }
             }
             delay(10000);
         }
