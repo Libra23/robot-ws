@@ -6,23 +6,27 @@ from tkinter import ttk
 from ttkthemes import ThemedTk
 from reference_gui import *
 from mainte_data import *
+from msg_data import *
+from packet_data import *
 
 class MainteGuiMain:
     def __init__(self):
         print("MainteGui Constructor")
-    
-    def thread(self):
+
+    def thread(self, input_queue, output_queue):
         root = ThemedTk(theme='radiance')
-        app = MainteGui(master = root, num_arm = NUM_ARM, num_joint_per_arm = NUM_JOINT)
+        app = MainteGui(master = root, num_arm = NUM_ARM, num_joint_per_arm = NUM_JOINT, input_queue=input_queue, output_queue=output_queue)
         app.mainloop()
 
 class MainteGui(ttk.Frame):
-    def __init__(self, master, num_arm, num_joint_per_arm):
+    def __init__(self, master, num_arm, num_joint_per_arm, input_queue, output_queue):
         super().__init__(master)
         # init parameter
         self.num_arm = num_arm
         self.num_joint = num_joint_per_arm
-        self.control_data = ControlData()
+        self.input_queue = input_queue
+        self.output_queue = output_queue
+        self.control_data = [ControlData() for i in range(self.num_arm)]
         # init frame parameter
         self.mode = tkinter.StringVar()
         self.enable_states = [[tkinter.BooleanVar(value = True) for j in range(self.num_joint)] for i in range(self.num_arm)]
@@ -31,7 +35,7 @@ class MainteGui(ttk.Frame):
         master.title('MainteServer')
         self.create_widgets()
         self.pack()
-        
+
     def create_widgets(self):
         # frame
         menu_frame =  ttk.Frame(self)
@@ -66,7 +70,14 @@ class MainteGui(ttk.Frame):
     # Callback Function --->>>
     def control_callback(self, i):
         def callback():
-            print('Call control ' + str(i) + 'Mode = ' + self.mode.get())
+            print('Call control ' + str(i) + ' Mode = ' + self.mode.get())
+            for j in range(self.num_joint):
+                if self.enable_states[i][j].get() == True:
+                    self.control_data[i].enable[j] = 1
+                else:
+                    self.control_data[i].enable[j] = 0
+            msg = MsgCmdControlData(i, self.control_data[i])
+            self.output_queue.put(msg)
         return callback
 
     def reference_callback(self, i):
@@ -74,7 +85,7 @@ class MainteGui(ttk.Frame):
             print('Call reference ' + str(i))
             if self.reference_frame[i] == None or not self.reference_frame[i].winfo_exists():
                 self.reference_frame[i] = tkinter.Toplevel(self)
-                ReferenceGui(self.reference_frame[i], self.mode.get(), i, self.num_joint, self.control_data.reference[i])
+                ReferenceGui(self.reference_frame[i], self.mode.get(), i, self.num_joint, self.control_data[i].reference)
         return callback
     # <<<--- Callback Function
 

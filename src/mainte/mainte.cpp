@@ -231,8 +231,8 @@ void Maintenance::Thread() {
         MAINTE_LOG(TAG, "Successfully connect to Host.");
 
         while(true) {
-            PacketRobotInfoReq robot_info_req;
-            int err = send(sock, &robot_info_req, sizeof(PacketRobotInfoReq), 0);
+            PacketRobotInfoRes robot_info_req;
+            int err = send(sock, &robot_info_req, sizeof(PacketRobotInfoRes), 0);
             if (err < 0) {
                 MAINTE_LOG(TAG, "Error occurred during sending: errno %d", errno);
                 break;
@@ -247,10 +247,8 @@ void Maintenance::Thread() {
             // Data received
             else {
                 MAINTE_LOG(TAG, "Received %d bytes", len);
-                
-                TcpHeader tcp_header;
-                memmove(&tcp_header, rx_buffer.data(), sizeof(tcp_header));
-                if (tcp_header.type == MAINTE_TO_ROBOT_CONTROL_DATA) {
+                uint8_t tcp_packet_type = GetPacketType(rx_buffer.data());
+                if (tcp_packet_type == MAINTE_TO_ROBOT_CONTROL_DATA) {
                     PacketControlDataReq control_data_req;
                     memmove(&control_data_req, rx_buffer.data(), sizeof(control_data_req));
                     MAINTE_LOG(TAG, "arm_id = %d", control_data_req.arm_id);

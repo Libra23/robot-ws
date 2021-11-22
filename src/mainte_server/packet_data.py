@@ -2,7 +2,6 @@
 # coding: utf-8
 
 from ctypes import *
-from enum import *
 from mainte_data import *
 
 '''
@@ -62,9 +61,11 @@ class PacketControlDataReq(Structure):
         ('arm_id', c_uint8),
         ('control_data', ControlData)
     ]
-    def __init__(self):
+    def __init__(self, arm_id = 0, control_data = ControlData()):
         self.header = TcpHeader(sizeof(PacketControlDataReq), PacketType.MAINTE_TO_ROBOT_CONTROL_DATA)
-class PacketArmInfoReq(Structure):
+        self.arm_id = arm_id
+        self.control_data = control_data
+class PacketArmInfoRes(Structure):
     _pack_ = 1
     _fields_ = [
         ('header', TcpHeader),
@@ -72,6 +73,11 @@ class PacketArmInfoReq(Structure):
         ('num_joint', c_uint8)
     ]
     def __init__(self):
-        self.header = TcpHeader(sizeof(PacketArmInfoReq), PacketType.ROBOT_TO_MAINTE_ARM_INFO)
+        self.header = TcpHeader(sizeof(PacketArmInfoRes), PacketType.ROBOT_TO_MAINTE_ARM_INFO)
         self.num_arm = 0
         self.num_joint = 0
+
+def GetPacketType(data):
+    tcp_header = TcpHeader()
+    memmove(addressof(tcp_header), data, sizeof(tcp_header))
+    return tcp_header.type

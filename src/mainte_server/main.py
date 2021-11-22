@@ -15,7 +15,7 @@ def main():
 
     # gui thread (main thread)
     mainte_gui = MainteGuiMain()
-    mainte_gui.thread()
+    mainte_gui.thread(mq_server_to_gui, mq_gui_to_server)
 
     mainte_server_thread.join()
 

@@ -27,15 +27,21 @@ struct PacketControlDataReq {
         header(sizeof(PacketControlDataReq), MAINTE_TO_ROBOT_CONTROL_DATA) {}
 };
 
-struct PacketRobotInfoReq {
+struct PacketRobotInfoRes {
     TcpHeader header;
     uint8_t num_arm;
     uint8_t num_joint;
-    PacketRobotInfoReq() : 
-        header(sizeof(PacketRobotInfoReq), ROBOT_TO_MAINTE_ROBOT_INFO),
+    PacketRobotInfoRes() : 
+        header(sizeof(PacketRobotInfoRes), ROBOT_TO_MAINTE_ROBOT_INFO),
         num_arm(ArmId::NUM_ARM),
         num_joint(NUM_JOINT) {}
 };
 #pragma pack(pop)
+
+uint8_t GetPacketType(const uint8_t* data) {
+    TcpHeader tcp_header;
+    memmove(&tcp_header, data, sizeof(tcp_header));
+    return tcp_header.type;
+}
 
 #endif
