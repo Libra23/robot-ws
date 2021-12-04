@@ -2,6 +2,7 @@
 #define PACKET_DATA_H
 
 #include "mainte_data.hpp"
+#include <vector>
 
 enum PacketType {
     // mainte to robot
@@ -38,10 +39,15 @@ struct PacketRobotInfoRes {
 };
 #pragma pack(pop)
 
-uint8_t GetPacketType(const uint8_t* data) {
+uint8_t GetPacketType(const uint8_t* buf) {
     TcpHeader tcp_header;
-    memmove(&tcp_header, data, sizeof(tcp_header));
+    memmove(&tcp_header, buf, sizeof(tcp_header));
     return tcp_header.type;
 }
+
+const std::vector<size_t> PACKET_SIZE_ARRAY {
+    sizeof(PacketControlDataReq),
+    sizeof(PacketRobotInfoRes)
+};
 
 #endif

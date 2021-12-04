@@ -14,9 +14,18 @@ class MainteGuiMain:
         print("MainteGui Constructor")
 
     def thread(self, input_queue, output_queue):
-        root = ThemedTk(theme='radiance')
-        app = MainteGui(master = root, num_arm = NUM_ARM, num_joint_per_arm = NUM_JOINT, input_queue=input_queue, output_queue=output_queue)
-        app.mainloop()
+        self.input_queue = input_queue
+        self.output_queue = output_queue
+        self.root = ThemedTk(theme='radiance')
+        app = MainteGui(master = self.root, num_arm = NUM_ARM, num_joint_per_arm = NUM_JOINT, input_queue = self.input_queue, output_queue = self.output_queue)
+        self.root.protocol("WM_DELETE_WINDOW", self.quit)
+        self.root.mainloop()
+
+    def quit(self):
+        print("Call destroy")
+        msg = MsgCmd(MsgType.MSG_ALL_TERMINATE)
+        self.output_queue.put(msg)
+        self.root.destroy()
 
 class MainteGui(ttk.Frame):
     def __init__(self, master, num_arm, num_joint_per_arm, input_queue, output_queue):

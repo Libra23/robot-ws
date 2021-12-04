@@ -213,7 +213,7 @@ void Maintenance::Thread() {
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(PORT);
 
-    std::array<char, 2048> rx_buffer;
+    std::array<uint8_t, 2048> rx_buffer;
     while(true) {
         // Prepare socket
         int sock =  socket(AF_INET, SOCK_STREAM, IPPROTO_IP);

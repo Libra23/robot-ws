@@ -1,39 +1,40 @@
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef X_QUEUE_H
+#define X_QUEUE_H
 
 #include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
+#include "freertos/queue.h"
 
-template<typename T>
 class Queue {
     public:
-    Queue();
-    void Write(const T& data);
-    void Read(T& data);
+    Queue(uint32_t length, uint32_t size);
+    void Send(const void* data);
+    void Receive(void* data);
+    uint32_t NumOfItems();
+    void ReceivePeek(void* data);
     private:
-    QueueHandle_t x_mutex_;
-    T memory_;
+    QueueHandle_t x_queue_;
 };
 
-template <typename T>
-Queue<T>::Queue() {
-    x_mutex_ = xSemaphoreCreateMutex();
-    memory_ = T();
+Queue::Queue(uint32_t length, uint32_t size) {
+    x_queue_ = xQueueCreate(length, size);
 }
 
-template <typename T>
-void Queue<T>::Write(const T& data) {
-    if (xSemaphoreTake(x_mutex_, portMAX_DELAY) == pdTRUE) {
-        memory_ = data;
-        xSemaphoreGive(x_mutex_);
+void Queue::Send(const void* data) {
+    if (xQueueSendToBack(x_queue_, data, portMAX_DELAY) != pdTRUE) {
     }
 }
 
-template <typename T>
-void Queue<T>::Read(T& data) {
-    if (xSemaphoreTake(x_mutex_, portMAX_DELAY) == pdTRUE) {
-        data = memory_;
-        xSemaphoreGive(x_mutex_);
+void Queue::Receive(void* data) {
+    if (xQueueReceive(x_queue_, data, portMAX_DELAY) != pdTRUE) {
+    }
+}
+
+uint32_t Queue::NumOfItems() {
+    return uxQueueMessagesWaiting(x_queue_);
+}
+
+void Queue::ReceivePeek(void* data) {
+    if (xQueuePeek(x_queue_, data, portMAX_DELAY) != pdTRUE) {
     }
 }
 
