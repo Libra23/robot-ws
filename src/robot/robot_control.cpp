@@ -1,7 +1,7 @@
 #include "robot_control.hpp"
 #include "esp_log.h"
 
-#include "common/memory.hpp"
+#include "common/extern_definition.hpp"
 
 //#define ROBOT_CONTROL_DEBUG
 #ifdef ROBOT_CONTROL_DEBUG
@@ -11,12 +11,6 @@
 #define ROBOT_LOG(...) ESP_LOGI(__VA_ARGS__)
 #define ROBOT_DEBUG_LOG(...)
 #endif
-
-/**
- * @brief Global parameter
- */
-extern ShareMemory<OutputState> output_memory_; //!< defined at io_interface
-extern ShareMemory<InputState> input_memory_;   //!< defined at io_interface
 
 /**
  * @class Robot

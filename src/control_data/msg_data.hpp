@@ -3,14 +3,15 @@
 
 #include "mainte_data.hpp"
 #include "common/utility.hpp"
+#include <algorithm>
 #include <vector>
 
-enum PacketType {
+enum MsgType {
     // mainte to robot
-    MAINTE_TO_ROBOT_CONTROL_ON,
-    MAINTE_TO_ROBOT_CONTROL_OFF,
+    MSG_MAINTE_TO_ROBOT_CONTROL_ON,
+    MSG_MAINTE_TO_ROBOT_CONTROL_OFF,
     // robot to mainte
-    ROBOT_TO_MAINTE_ROBOT_INFO
+    MSG_ROBOT_TO_MAINTE_ROBOT_INFO
 };
 #pragma pack(push, 1)
 struct MsgHeader {
@@ -46,7 +47,7 @@ struct MsgCmdControlOn {
     uint8_t arm_id;
     ControlData control_data;
     MsgCmdControlOn(uint8_t arm_id = 0, ControlData control_data = ControlData()) : 
-        header(sizeof(MsgCmdControlOn), MAINTE_TO_ROBOT_CONTROL_ON),
+        header(sizeof(MsgCmdControlOn), MSG_MAINTE_TO_ROBOT_CONTROL_ON),
         arm_id(arm_id),
         control_data(control_data) {}
     MsgCmdControlOn(const void* buf) {

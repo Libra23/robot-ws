@@ -2,10 +2,10 @@
 #define ROBOT_H
 
 #include "control_data/robot_data.hpp"
+#include "control_data/io_data.hpp"
 #include "arm_control.hpp"
 
 #include "common/thread.hpp"
-#include "io_interface/io_interface.hpp"
 
 struct RobotConfig {
     std::array<double, XYZ> cog;

@@ -1,7 +1,7 @@
 #include "io_interface.hpp"
 #include "esp_log.h"
 
-#include "common/memory.hpp"
+#include "common/extern_definition.hpp"
 
 //#define IO_INTERFACE_DEBUG
 #ifdef IO_INTERFACE_DEBUG

@@ -8,7 +8,6 @@
 class Thread {
     public:
     Thread();
-    void Start(void (*function)(void*), const std::string& name, uint8_t priority, uint32_t stack_size, void* arg);
     void Start(void (*function)(void*), const std::string& name, uint8_t priority, uint32_t stack_size, void* arg, uint8_t core);
     uint32_t GetStackMargin();
     private:

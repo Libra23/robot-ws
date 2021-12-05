@@ -4,7 +4,11 @@
 #include "esp_log.h"
 #include "lwip/sockets.h"
 #include <string.h>
+
 #include "control_data/packet_data.hpp"
+#include "control_data/msg_data.hpp"
+#include "common/extern_definition.hpp"
+
 //#define MAINTE_DEBUG
 #ifdef MAINTE_DEBUG
 #define MAINTE_LOG(...) ESP_LOGI(__VA_ARGS__)
@@ -17,6 +21,14 @@ static const char *TAG = "Mainte";
 
 #define PORT 3333
 
+/**
+ * @brief Global parameter
+ */
+Queue mainte_to_robot_queue_(10, GetMaxMsgSize());
+
+/**
+ * @class Maintenance
+ */
 Maintenance::Maintenance() {
     MAINTE_LOG(TAG, "Constructor");
 }
@@ -248,7 +260,7 @@ void Maintenance::Thread() {
             else {
                 MAINTE_LOG(TAG, "Received %d bytes", len);
                 uint8_t tcp_packet_type = GetPacketType(rx_buffer.data());
-                if (tcp_packet_type == MAINTE_TO_ROBOT_CONTROL_DATA) {
+                if (tcp_packet_type == PACKET_MAINTE_TO_ROBOT_CONTROL_DATA) {
                     PacketControlDataReq control_data_req;
                     memmove(&control_data_req, rx_buffer.data(), sizeof(control_data_req));
                     MAINTE_LOG(TAG, "arm_id = %d", control_data_req.arm_id);

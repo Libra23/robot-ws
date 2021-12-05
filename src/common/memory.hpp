@@ -1,5 +1,5 @@
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef X_MEMORY_H
+#define X_MEMORY_H
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"

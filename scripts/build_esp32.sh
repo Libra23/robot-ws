@@ -1,6 +1,7 @@
 #!/bin/bash
 
-TARGET_PORT=/dev/tty.usbserial-35DA80B4AB
+# read parameter
+. ./config.sh
 
 for opt in "$@"
 do
@@ -38,7 +39,6 @@ ninja -C build_esp32
 if [[ ${arg_f} -eq 1 ]]; then
     echo "----------flash----------"
     cd build_esp32
-    #ESPPORT=/dev/tty.usbserial-3D528D75A9 ESPBAUD=500000 ninja flash
     ESPPORT=${TARGET_PORT} ESPBAUD=500000 ninja flash
     cd ..
 fi

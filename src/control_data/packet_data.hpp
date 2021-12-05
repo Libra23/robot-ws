@@ -6,9 +6,9 @@
 
 enum PacketType {
     // mainte to robot
-    MAINTE_TO_ROBOT_CONTROL_DATA,
+    PACKET_MAINTE_TO_ROBOT_CONTROL_DATA,
     // robot to mainte
-    ROBOT_TO_MAINTE_ROBOT_INFO
+    PACKET_ROBOT_TO_MAINTE_ROBOT_INFO
 };
 
 #pragma pack(push, 1)
@@ -25,7 +25,7 @@ struct PacketControlDataReq {
     uint8_t arm_id;
     ControlData control_data;
     PacketControlDataReq() : 
-        header(sizeof(PacketControlDataReq), MAINTE_TO_ROBOT_CONTROL_DATA) {}
+        header(sizeof(PacketControlDataReq), PACKET_MAINTE_TO_ROBOT_CONTROL_DATA) {}
 };
 
 struct PacketRobotInfoRes {
@@ -33,7 +33,7 @@ struct PacketRobotInfoRes {
     uint8_t num_arm;
     uint8_t num_joint;
     PacketRobotInfoRes() : 
-        header(sizeof(PacketRobotInfoRes), ROBOT_TO_MAINTE_ROBOT_INFO),
+        header(sizeof(PacketRobotInfoRes), PACKET_ROBOT_TO_MAINTE_ROBOT_INFO),
         num_arm(ArmId::NUM_ARM),
         num_joint(NUM_JOINT) {}
 };
