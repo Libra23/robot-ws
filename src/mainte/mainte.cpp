@@ -225,7 +225,7 @@ void Maintenance::Thread() {
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(PORT);
 
-    std::array<uint8_t, 2048> rx_buffer;
+    uint8_t rx_buffer[GetMaxPacketSize()];
     while(true) {
         // Prepare socket
         int sock =  socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
@@ -243,14 +243,16 @@ void Maintenance::Thread() {
         MAINTE_LOG(TAG, "Successfully connect to Host.");
 
         while(true) {
+            /*
             PacketRobotInfoRes robot_info_req;
             int err = send(sock, &robot_info_req, sizeof(PacketRobotInfoRes), 0);
             if (err < 0) {
                 MAINTE_LOG(TAG, "Error occurred during sending: errno %d", errno);
                 break;
             }
+            */
 
-            int len = recv(sock, rx_buffer.data(), rx_buffer.size(), 0);
+            int len = recv(sock, rx_buffer, GetMaxPacketSize(), 0);
             // Error occurred during receiving
             if (len < 0) {
                 MAINTE_LOG(TAG, "recv failed: errno %d", errno);
@@ -259,14 +261,9 @@ void Maintenance::Thread() {
             // Data received
             else {
                 MAINTE_LOG(TAG, "Received %d bytes", len);
-                uint8_t tcp_packet_type = GetPacketType(rx_buffer.data());
-                if (tcp_packet_type == PACKET_MAINTE_TO_ROBOT_CONTROL_DATA) {
-                    PacketControlDataReq control_data_req;
-                    memmove(&control_data_req, rx_buffer.data(), sizeof(control_data_req));
-                    MAINTE_LOG(TAG, "arm_id = %d", control_data_req.arm_id);
-                }
+                ReactReceivedPacket(rx_buffer);
             }
-            delay(10000);
+            delay(1000);
         }
 
         if (sock != -1) {
@@ -279,6 +276,29 @@ void Maintenance::Thread() {
     StopConnection();
     MAINTE_LOG(TAG, "Kill Task");
     vTaskDelete(NULL);
+}
+
+void Maintenance::ReactReceivedPacket(const void* buf) {
+    uint8_t type = GetPacketType(buf);
+    MAINTE_LOG(TAG, "Received Type = %d", type);
+
+    switch(type) {
+        case PACKET_MAINTE_TO_ROBOT_CONTROL_ON:  {
+            PacketControl packet(buf);
+            MsgCmdControl cmd(MsgType::MSG_MAINTE_TO_ROBOT_CONTROL_ON, packet.arm_id, packet.control_data);
+            mainte_to_robot_queue_.Send(&cmd);
+            break;
+        }
+        case PACKET_MAINTE_TO_ROBOT_CONTROL_OFF: {
+            PacketControl packet(buf);
+            MsgCmdControl cmd(MsgType::MSG_MAINTE_TO_ROBOT_CONTROL_OFF, packet.arm_id, packet.control_data);
+            mainte_to_robot_queue_.Send(&cmd);
+            break;
+        }
+        default: {
+            break;
+        }
+    }
 }
 
 /**

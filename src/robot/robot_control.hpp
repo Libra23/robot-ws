@@ -26,6 +26,7 @@ class Robot {
     void ConvertOutput(const RobotRef& ref, OutputState& output);
     void ConvertInput(const InputState& input, RobotState& state);
     void GetDefaultRef(RobotRef& ref);
+    void ReactReceivedMsg();
     std::array<Arm, NUM_ARM> arm_;
     RobotConfig config_;
 };

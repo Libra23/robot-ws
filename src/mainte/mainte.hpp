@@ -11,6 +11,7 @@ class Maintenance {
     void Thread();
     private:
     esp_netif_t* p_netif_;
+    void ReactReceivedPacket(const void* buf);
 };
 
 class MaintenanceMain {

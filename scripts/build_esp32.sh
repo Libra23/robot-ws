@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # read parameter
-. ./config.sh
+. ./scripts/config.sh
 
 for opt in "$@"
 do

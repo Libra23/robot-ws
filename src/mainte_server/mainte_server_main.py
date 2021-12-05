@@ -40,13 +40,17 @@ class MainteServerMain(Process):
             try:
                 while not self.input_queue.empty():
                     msg = self.input_queue.get()
-                    if msg.header.type == MsgType.MSG_ALL_TERMINATE:
+                    type = msg.header.type
+                    if type == MsgType.MSG_ALL_TERMINATE:
                         print("!!! Receive terminate !!!")
                         terminate_flag = True
-                    if msg.header.type == MsgType.MSG_GUI_TO_SERVER_CONTROL_DATA:
+                    elif type == MsgType.MSG_GUI_TO_SERVER_CONTROL_ON:
                         print("!!! Receive Control !!!")
-                        control_data_req = PacketControlDataReq(msg.arm_id, msg.control_data)
-                        client.send(control_data_req)
+                        cmd = PacketControl(PacketType.PACKET_MAINTE_TO_ROBOT_CONTROL_ON, msg.arm_id, msg.control_data)
+                        client.send(cmd)
+                    elif type == MsgType.MSG_GUI_TO_SERVER_CONTROL_OFF:
+                        cmd = PacketControl(PacketType.PACKET_MAINTE_TO_ROBOT_CONTROL_OFF, msg.arm_id, msg.control_data)
+                        client.send(cmd)
             except KeyboardInterrupt:
                 print("!!! Call terminate !!!")
                 terminate_flag = True
@@ -54,13 +58,13 @@ class MainteServerMain(Process):
         tcp_server.close()
 
     def receive(self, client):
-        buffer_size = 1024
+        buffer_size = 4096
         while True:
-            # receive
+            # receive from tcp
             data = client.recv(buffer_size)
             print("[*] Received Data : {}, type : {}".format(data, type(data)))
             tcp_packet_type = GetPacketType(data)
-            if tcp_packet_type == PacketType.ROBOT_TO_MAINTE_ARM_INFO:
+            if tcp_packet_type == PacketType.PACKET_ROBOT_TO_MAINTE_ROBOT_INFO:
                 arm_info = PacketArmInfoRes()
                 memmove(addressof(arm_info), data, sizeof(arm_info))
                 print("num_arm = {}, num_joint = {}".format(arm_info.num_arm, arm_info.num_joint))

@@ -2,6 +2,7 @@
 #include "esp_log.h"
 
 #include "common/extern_definition.hpp"
+#include "control_data/msg_data.hpp"
 
 //#define ROBOT_CONTROL_DEBUG
 #ifdef ROBOT_CONTROL_DEBUG
@@ -11,16 +12,17 @@
 #define ROBOT_LOG(...) ESP_LOGI(__VA_ARGS__)
 #define ROBOT_DEBUG_LOG(...)
 #endif
+static const char *TAG = "Robot";
 
 /**
  * @class Robot
  */
 Robot::Robot() {
-    ROBOT_LOG("Robot", "Constructor");
+    ROBOT_LOG(TAG, "Constructor");
 }
 
 void Robot::Thread() {
-    ROBOT_LOG("Robot", "Thread");
+    ROBOT_LOG(TAG, "Thread");
     // set config
     CreateConfig(config_);
     for (size_t i = 0; i < arm_.size(); i++) {
@@ -35,6 +37,8 @@ void Robot::Thread() {
         // state
         RobotState state;
         ConvertInput(input, state);
+
+        ReactReceivedMsg();
 
         // calcurate trans
         for (size_t i = 0; i < arm_.size(); i++) {
@@ -58,9 +62,9 @@ void Robot::Thread() {
             // convert q to act_q
             arm_[i].ConvertToAct(ref.arm[i].q, ref.arm[i].act_q);
             
-            ROBOT_DEBUG_LOG("Robot", "Leg%d : Pos xyz = %f, %f, %f\n", i, ref.arm[i].trans.translation()[X], ref.arm[i].trans.translation()[Y], ref.arm[i].trans.translation()[Z]);
-            ROBOT_DEBUG_LOG("Robot", "Leg%d : Joint q = %f, %f, %f\n", i, ref.arm[i].q[0] * RAD_TO_DEG, ref.arm[i].q[1] * RAD_TO_DEG, ref.arm[i].q[2] * RAD_TO_DEG);
-            ROBOT_DEBUG_LOG("Robot", "Leg%d : Joint act_q = %f, %f, %f\n", i, ref.arm[i].act_q[0], ref.arm[i].act_q[1], ref.arm[i].act_q[2]);
+            ROBOT_DEBUG_LOG(TAG, "Leg%d : Pos xyz = %f, %f, %f\n", i, ref.arm[i].trans.translation()[X], ref.arm[i].trans.translation()[Y], ref.arm[i].trans.translation()[Z]);
+            ROBOT_DEBUG_LOG(TAG, "Leg%d : Joint q = %f, %f, %f\n", i, ref.arm[i].q[0] * RAD_TO_DEG, ref.arm[i].q[1] * RAD_TO_DEG, ref.arm[i].q[2] * RAD_TO_DEG);
+            ROBOT_DEBUG_LOG(TAG, "Leg%d : Joint act_q = %f, %f, %f\n", i, ref.arm[i].act_q[0], ref.arm[i].act_q[1], ref.arm[i].act_q[2]);
         }
 
         // output
@@ -232,6 +236,33 @@ void Robot::GetDefaultRef(RobotRef& ref) {
     // arm
     for (size_t i = 0; i < ref.arm.size(); i++) {
         arm_[i].GetDefault(i, ref.arm[i].q, ref.body.trans, ref.arm[i].trans);
+    }
+}
+
+void Robot::ReactReceivedMsg() {
+    const uint32_t num_of_msg = mainte_to_robot_queue_.NumOfItems();
+    for (uint32_t i = 0; i < num_of_msg; i++) {
+        uint8_t buf[GetMaxMsgSize()];
+        mainte_to_robot_queue_.Receive(buf);
+        uint8_t type = GetMsgType(buf);
+        ROBOT_LOG(TAG, "Received Type = %d", type);
+
+        switch(type) {
+            case MSG_MAINTE_TO_ROBOT_CONTROL_ON: {
+                MsgCmdControl cmd(buf);
+                ROBOT_LOG(TAG, "arm_id = %d", cmd.arm_id);
+                break;
+            }
+            case MSG_MAINTE_TO_ROBOT_CONTROL_OFF: {
+                MsgCmdControl cmd(buf);
+                ROBOT_LOG(TAG, "arm_id = %d", cmd.arm_id);
+                break;
+            }
+            default: {
+                break;
+            }
+
+        }
     }
 }
 

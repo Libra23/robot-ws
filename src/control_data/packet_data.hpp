@@ -2,13 +2,19 @@
 #define PACKET_DATA_H
 
 #include "mainte_data.hpp"
+#include "common/utility.hpp"
+#include <algorithm>
 #include <vector>
 
 enum PacketType {
+    PACKET_UNKOWN,
     // mainte to robot
-    PACKET_MAINTE_TO_ROBOT_CONTROL_DATA,
+    PACKET_MAINTE_TO_ROBOT_CONTROL_ON,
+    PACKET_MAINTE_TO_ROBOT_CONTROL_OFF,
     // robot to mainte
-    PACKET_ROBOT_TO_MAINTE_ROBOT_INFO
+    PACKET_ROBOT_TO_MAINTE_ROBOT_INFO,
+    // terminate
+    PACKET_TERMINATE
 };
 
 #pragma pack(push, 1)
@@ -20,34 +26,41 @@ struct TcpHeader {
         type(type) {}
 };
 
-struct PacketControlDataReq {
+struct PacketControl {
     TcpHeader header;
     uint8_t arm_id;
     ControlData control_data;
-    PacketControlDataReq() : 
-        header(sizeof(PacketControlDataReq), PACKET_MAINTE_TO_ROBOT_CONTROL_DATA) {}
+    PacketControl(uint8_t type = 0, uint8_t arm_id = 0, ControlData control_data = ControlData()) : 
+        header(sizeof(PacketControl), type),
+        arm_id(arm_id),
+        control_data(control_data) {}
+    PacketControl(const void* buf) {ConvertFromBuffer(buf, this, sizeof(*this));}
 };
 
-struct PacketRobotInfoRes {
+struct PacketRobotInfo {
     TcpHeader header;
     uint8_t num_arm;
     uint8_t num_joint;
-    PacketRobotInfoRes() : 
-        header(sizeof(PacketRobotInfoRes), PACKET_ROBOT_TO_MAINTE_ROBOT_INFO),
+    PacketRobotInfo() : 
+        header(sizeof(PacketRobotInfo), PACKET_ROBOT_TO_MAINTE_ROBOT_INFO),
         num_arm(ArmId::NUM_ARM),
         num_joint(NUM_JOINT) {}
+    PacketRobotInfo(const void* buf) {ConvertFromBuffer(buf, this, sizeof(*this));}
 };
 #pragma pack(pop)
 
-uint8_t GetPacketType(const uint8_t* buf) {
+inline uint8_t GetPacketType(const void* buf) {
     TcpHeader tcp_header;
     memmove(&tcp_header, buf, sizeof(tcp_header));
     return tcp_header.type;
 }
 
-const std::vector<size_t> PACKET_SIZE_ARRAY {
-    sizeof(PacketControlDataReq),
-    sizeof(PacketRobotInfoRes)
-};
+inline uint32_t GetMaxPacketSize() {
+    const std::vector<size_t> packet_size_array {
+        sizeof(PacketControl),
+        sizeof(PacketRobotInfo)
+    };
+    return *std::max_element(packet_size_array.begin(), packet_size_array.end());
+}
 
 #endif

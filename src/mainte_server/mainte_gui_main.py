@@ -85,7 +85,7 @@ class MainteGui(ttk.Frame):
                     self.control_data[i].enable[j] = 1
                 else:
                     self.control_data[i].enable[j] = 0
-            msg = MsgCmdControlData(i, self.control_data[i])
+            msg = MsgCmdControl(MsgType.MSG_GUI_TO_SERVER_CONTROL_ON, i, self.control_data[i])
             self.output_queue.put(msg)
         return callback
 

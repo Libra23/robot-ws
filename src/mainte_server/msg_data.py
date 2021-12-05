@@ -5,8 +5,14 @@ from ctypes import *
 from mainte_data import *
 
 class MsgType(IntEnum):
-    MSG_ALL_TERMINATE = 0
-    MSG_GUI_TO_SERVER_CONTROL_DATA = 1
+    MSG_UNKNOWN = 0
+    # gui to server
+    MSG_GUI_TO_SERVER_CONTROL_ON = auto()
+    MSG_GUI_TO_SERVER_CONTROL_OFF = auto()
+    # server to gui
+    MSG_SERVER_TO_GUI_ROBOT_INFO = auto()
+    # terminate
+    MSG_ALL_TERMINATE = auto()
 
 class MsgHeader(Structure):
     _pack_ = 1
@@ -36,15 +42,15 @@ class MsgCmdByte(Structure):
         self.header = MsgHeader(sizeof(MsgCmdByte), type)
         self.byte = byte
 
-class MsgCmdControlData(Structure):
+class MsgCmdControl(Structure):
     _pack_ = 1
     _fields_ = [
         ('header', MsgHeader),
         ('arm_id', c_uint8),
         ('control_data', ControlData)
     ]
-    def __init__(self, arm_id = 0, control_data = ControlData()):
-        self.header = MsgHeader(sizeof(MsgCmdControlData), MsgType.MSG_GUI_TO_SERVER_CONTROL_DATA)
+    def __init__(self, type = 0, arm_id = 0, control_data = ControlData()):
+        self.header = MsgHeader(sizeof(MsgCmdControl), type)
         self.arm_id = arm_id
         self.control_data = control_data
 
