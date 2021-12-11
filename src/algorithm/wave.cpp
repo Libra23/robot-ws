@@ -10,7 +10,7 @@ void Wave::Config(const WaveForm& form) {
     form_ = form;
 }
 
-void Wave::Config(WaveType type, double amplitude, double base, double frequency, double phase) {
+void Wave::Config(unsigned char type, double amplitude, double base, double frequency, double phase) {
     form_.type = type;
     form_.amplitude = amplitude;
     form_.base = base;

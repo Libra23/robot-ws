@@ -27,8 +27,11 @@ class Robot {
     void ConvertInput(const InputState& input, RobotState& state);
     void GetDefaultRef(RobotRef& ref);
     void ReactReceivedMsg();
+    void ReactControlOn(int arm_id, const ControlData& control_data);
+    void ReactControlOff(int arm_id, const ControlData& control_data);
     std::array<Arm, NUM_ARM> arm_;
     RobotConfig config_;
+    std::array<ControlData, NUM_ARM> control_data_;
 };
 
 class RobotMain {

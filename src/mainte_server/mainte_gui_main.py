@@ -40,6 +40,9 @@ class MainteGui(ttk.Frame):
         self.mode = tkinter.StringVar()
         self.enable_states = [[tkinter.BooleanVar(value = True) for j in range(self.num_joint)] for i in range(self.num_arm)]
         self.reference_frame = [None for i in range(self.num_arm)]
+        style = ttk.Style()
+        style.configure("control_on.TButton", foreground="red")
+        style.configure("control_off.TButton", foreground="blue")
         # prepare frame
         master.title('MainteServer')
         self.create_widgets()
@@ -63,7 +66,8 @@ class MainteGui(ttk.Frame):
             arm_frame = ttk.Frame(main_frame)
             label = ttk.Label(arm_frame, text = 'Arm (' + str(i) + ')')
             label.grid(row = 0, column = 0)
-            control_button = ttk.Button(arm_frame, text = 'Control', command = self.control_callback(i), width = 7)
+            control_button = ttk.Button(arm_frame, text = 'Control', width = 7, style="control_off.TButton")
+            control_button.configure(command = self.control_callback(i, control_button))
             control_button.grid(row = 1, column = 0)
             for j in range(self.num_joint):
                 enable_button = ttk.Checkbutton(arm_frame, text = 'Joint(' + str(j) + ')', variable = self.enable_states[i][j])
@@ -77,9 +81,10 @@ class MainteGui(ttk.Frame):
         main_frame.pack()
 
     # Callback Function --->>>
-    def control_callback(self, i):
+    def control_callback(self, i, button):
         def callback():
             print('Call control ' + str(i) + ' Mode = ' + self.mode.get())
+            button.configure(style="control_on.TButton")
             for j in range(self.num_joint):
                 if self.enable_states[i][j].get() == True:
                     self.control_data[i].enable[j] = 1

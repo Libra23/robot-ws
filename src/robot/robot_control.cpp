@@ -37,9 +37,6 @@ void Robot::Thread() {
         // state
         RobotState state;
         ConvertInput(input, state);
-
-        ReactReceivedMsg();
-
         // calcurate trans
         for (size_t i = 0; i < arm_.size(); i++) {
             // convert act_q to q
@@ -48,6 +45,8 @@ void Robot::Thread() {
             // convert q to trans
             arm_[i].ForwardKinematic(state.arm[i].q, state.body.trans, state.arm[i].trans);
         }
+
+        ReactReceivedMsg();
         
         // ref
         RobotRef ref;
@@ -70,6 +69,7 @@ void Robot::Thread() {
         // output
         OutputState output;
         ConvertOutput(ref, output);
+
         output_memory_.Write(output);
         delay(10);
         //count_ms += 10;
@@ -250,6 +250,7 @@ void Robot::ReactReceivedMsg() {
         switch(type) {
             case MSG_MAINTE_TO_ROBOT_CONTROL_ON: {
                 MsgCmdControl cmd(buf);
+                ReactControlOn(cmd.arm_id, cmd.control_data)
                 ROBOT_LOG(TAG, "arm_id = %d", cmd.arm_id);
                 break;
             }
@@ -264,6 +265,11 @@ void Robot::ReactReceivedMsg() {
 
         }
     }
+}
+
+void Robot::ReactControlOn(int arm_id, const ControlData& control_data) {
+    // update control_data
+    control_data_[arm_id] = control_data;
 }
 
 /**

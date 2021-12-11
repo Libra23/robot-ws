@@ -30,7 +30,7 @@ class WaveType(IntEnum):
 class WaveForm(Structure):
     _pack_ = 1
     _fields_ = [
-        ('type', c_byte),
+        ('type', c_uint8),
         ('amplitude', c_double),
         ('base', c_double),
         ('frequency', c_double),

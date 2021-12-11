@@ -22,7 +22,7 @@ class Wave {
     public:
     Wave();
     void Config(const WaveForm& form);
-    void Config(WaveType type, double amplitude, double base, double frequency, double phase);
+    void Config(unsigned char type, double amplitude, double base, double frequency, double phase);
     double Update(double time);
     private:
     WaveForm form_;
