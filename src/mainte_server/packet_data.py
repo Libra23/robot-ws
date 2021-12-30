@@ -49,3 +49,9 @@ def GetPacketType(data):
     tcp_header = TcpHeader()
     memmove(addressof(tcp_header), data, sizeof(tcp_header))
     return tcp_header.type
+
+if __name__ == '__main__':
+    packet_control = PacketControl()
+    print("PacketControl Size={}, Size in header = {}", sizeof(PacketControl), packet_control.header.size)
+    packet_robot_info = PacketRobotInfo()
+    print("PacketRobotInfo Size={}, Size in header = {}", sizeof(packet_robot_info), packet_control.header.size)

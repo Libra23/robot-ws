@@ -14,6 +14,16 @@ class Thread {
     xTaskHandle task_handle_;
 };
 
+class ThreadClock {
+    public:
+    ThreadClock(uint32_t ms);
+    void Wait();
+    void Reset();
+    private:
+    portTickType previous_wake_time_;
+    uint32_t wait_ms_;
+};
+
 void delay(uint32_t ms);
 int64_t get_time_us();
 int64_t get_time_ms();

@@ -2,6 +2,7 @@
 #include "esp_log.h"
 
 #include "common/extern_definition.hpp"
+#include "constant/clock_const.hpp"
 
 //#define IO_INTERFACE_DEBUG
 #ifdef IO_INTERFACE_DEBUG
@@ -11,33 +12,52 @@
 #define IO_LOG(...) ESP_LOGI(__VA_ARGS__)
 #define IO_DEBUG_LOG(...)
 #endif
+static const char *TAG = "Io";
 
 /**
  * @brief Global parameter
  */
 ShareMemory<OutputState> output_memory_;
 ShareMemory<InputState> input_memory_;
+Semaphore sync_semaphore_;
 
 /**
  * @class IoInterface
  */
-IoInterface::IoInterface() {
-    IO_LOG("Io Interface", "Constructor");
+IoInterface::IoInterface() :
+    clock_(IO_INTERFACE_CYCLE_TIME_MS) {
+    IO_LOG(TAG, "Constructor");
 }
 
 void IoInterface::Thread() {
-    IO_LOG("Io Interface", "Thread");
+    IO_LOG(TAG, "Thread");
 
     // set config
     CreateConfig(config_);
     serial_servo_.Config(config_.serial_servo);
 
+    clock_.Reset();
+    counter_ = 0;
+
     // main loop
     while(true) {
+        // sleep
+        clock_.Wait();
+
+        // main
         OutputState output;
         output_memory_.Read(output);
         UpdateOutput(output);
-        delay(10);
+
+        InputState input;
+        UpdateInput(input);
+        input_memory_.Write(input);
+
+        // synchronize with semaphore
+        if (counter_ % static_cast<int>(ROBOT_CONTROL_CYCLE_TIME_MS / IO_INTERFACE_CYCLE_TIME_MS) == 0) {
+            sync_semaphore_.Give();
+        }
+        counter_++;
     }
 }
 
@@ -48,7 +68,7 @@ void IoInterface::CreateConfig(IoInterfaceConfig& config) {
     config.serial_servo.rx_pin = 19;
     config.serial_servo.en_pin = 33;
     config.serial_servo.baud_rate = 1250000;
-    config.serial_servo.time_out_ms = 10;
+    config.serial_servo.time_out_ms = 0;
 }
 
 void IoInterface::UpdateInput(InputState& state) {
@@ -70,10 +90,10 @@ void IoInterface::UpdateOutput(const OutputState& state) {
             // do nothing
         } else if (serial_servo_state.enable) {
             serial_servo_.SetPosition(serial_servo_state.id, serial_servo_state.act_q);
-            IO_DEBUG_LOG("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
+            IO_DEBUG_LOG(TAG, "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
         } else {
             serial_servo_.FreePosition(serial_servo_state.id);
-            IO_DEBUG_LOG("Io Interface", "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
+            IO_DEBUG_LOG(TAG, "id = %d, act_q = %f", serial_servo_state.id, serial_servo_state.act_q);
         }
     }
 }

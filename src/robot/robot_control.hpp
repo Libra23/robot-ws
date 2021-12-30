@@ -4,6 +4,7 @@
 #include "control_data/robot_data.hpp"
 #include "control_data/io_data.hpp"
 #include "arm_control.hpp"
+#include "control_data/msg_data.hpp"
 
 #include "common/thread.hpp"
 
@@ -31,7 +32,7 @@ class Robot {
     void ReactControlOff(int arm_id, const ControlData& control_data);
     std::array<Arm, NUM_ARM> arm_;
     RobotConfig config_;
-    std::array<ControlData, NUM_ARM> control_data_;
+    uint64_t counter_;
 };
 
 class RobotMain {

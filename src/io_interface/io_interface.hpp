@@ -23,6 +23,8 @@ class IoInterface {
     void UpdateOutput(const OutputState& state);
     SerialServo serial_servo_;
     IoInterfaceConfig config_;
+    ThreadClock clock_;
+    uint64_t counter_;
 };
 
 class IoInterfaceMain {

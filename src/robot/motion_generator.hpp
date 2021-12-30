@@ -3,6 +3,7 @@
 
 #include "algorithm/math_utility.hpp"
 #include "control_data/mainte_data.hpp"
+#include "arm_control.hpp"
 #include <vector>
 
 enum State {
@@ -31,6 +32,17 @@ class FKGenerator : public GeneratorBase {
     void Update(double time, const VectorXd& q_ref_pre, VectorXd& q_ref) override;
     private:
     std::vector<Wave> wave_;
+};
+
+class IKGenerator : public GeneratorBase {
+    public:
+    IKGenerator(const std::shared_ptr<Arm>& p_arm);
+    void Config(const Reference& reference) override;
+    void Update(double time, const VectorXd& q_ref_pre, VectorXd& q_ref) override;
+    private:
+
+    std::vector<Wave> wave_;
+    std::shared_ptr<Arm> p_arm_;
 };
 
 #endif

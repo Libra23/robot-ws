@@ -1,0 +1,7 @@
+#ifndef CLOCK_CONST_H
+#define CLOCK_CONST_H
+
+#define IO_INTERFACE_CYCLE_TIME_MS 5
+#define ROBOT_CONTROL_CYCLE_TIME_MS 10
+
+#endif

@@ -2,7 +2,7 @@
 #include "esp_log.h"
 
 #include "common/extern_definition.hpp"
-#include "control_data/msg_data.hpp"
+#include "constant/clock_const.hpp"
 
 //#define ROBOT_CONTROL_DEBUG
 #ifdef ROBOT_CONTROL_DEBUG
@@ -29,51 +29,59 @@ void Robot::Thread() {
         arm_[i].Config(config_.arm_config[i], i);
     }
 
+    counter_ = 0;
     while(true) {
-        // input
-        InputState input;
-        input_memory_.Read(input);
+        // synchronize with semaphore
+        if(sync_semaphore_.Take()) {
+            // input
+            InputState input;
+            input_memory_.Read(input);
 
-        // state
-        RobotState state;
-        ConvertInput(input, state);
-        // calcurate trans
-        for (size_t i = 0; i < arm_.size(); i++) {
-            // convert act_q to q
-            arm_[i].ConvertToJoint(state.arm[i].act_q, state.arm[i].q);
+            // state
+            RobotState state;
+            ConvertInput(input, state);
+            // calcurate trans
+            for (size_t i = 0; i < arm_.size(); i++) {
+                // convert act_q to q
+                arm_[i].ConvertToJoint(state.arm[i].act_q, state.arm[i].q);
 
-            // convert q to trans
-            arm_[i].ForwardKinematic(state.arm[i].q, state.body.trans, state.arm[i].trans);
-        }
+                // convert q to trans
+                arm_[i].ForwardKinematic(state.arm[i].q, state.body.trans, state.arm[i].trans);
+            }
 
-        ReactReceivedMsg();
-        
-        // ref
-        RobotRef ref;
-        GetDefaultRef(ref);
-
-        // calculate q & act_q
-        for (size_t i = 0; i < arm_.size(); i++) {
-            bool is_limit;
-            // convert trans to q
-            arm_[i].InverseKinematic(ref.arm[i].trans, ref.body.trans, is_limit, ref.arm[i].q);
-
-            // convert q to act_q
-            arm_[i].ConvertToAct(ref.arm[i].q, ref.arm[i].act_q);
+            ReactReceivedMsg();
             
-            ROBOT_DEBUG_LOG(TAG, "Leg%d : Pos xyz = %f, %f, %f\n", i, ref.arm[i].trans.translation()[X], ref.arm[i].trans.translation()[Y], ref.arm[i].trans.translation()[Z]);
-            ROBOT_DEBUG_LOG(TAG, "Leg%d : Joint q = %f, %f, %f\n", i, ref.arm[i].q[0] * RAD_TO_DEG, ref.arm[i].q[1] * RAD_TO_DEG, ref.arm[i].q[2] * RAD_TO_DEG);
-            ROBOT_DEBUG_LOG(TAG, "Leg%d : Joint act_q = %f, %f, %f\n", i, ref.arm[i].act_q[0], ref.arm[i].act_q[1], ref.arm[i].act_q[2]);
+            // ref
+            RobotRef ref;
+            GetDefaultRef(ref);
+
+            // calculate q & act_q
+            for (size_t i = 0; i < arm_.size(); i++) {
+                bool is_limit;
+                // convert trans to q
+                arm_[i].InverseKinematic(ref.arm[i].trans, ref.body.trans, is_limit, ref.arm[i].q);
+
+                // convert q to act_q
+                arm_[i].ConvertToAct(ref.arm[i].q, ref.arm[i].act_q);
+            }
+
+            // output
+            OutputState output;
+            ConvertOutput(ref, output);
+            output_memory_.Write(output);
+
+            const int skip = (1 * S_TO_MS / ROBOT_CONTROL_CYCLE_TIME_MS); // 1 s
+            if (counter_ % skip == 0) {
+                const int index = RIGHT_BACK;
+                // ROBOT_LOG(TAG, "count = %lld, act_q = (%f, %f, %f)", counter_, ref.arm[index].act_q[0], ref.arm[index].act_q[1], ref.arm[index].act_q[2]);
+            }
+            counter_++;
+        } else {
+            break;
         }
-
-        // output
-        OutputState output;
-        ConvertOutput(ref, output);
-
-        output_memory_.Write(output);
-        delay(10);
-        //count_ms += 10;
     }
+    ROBOT_LOG(TAG, "Kill Task");
+    vTaskDelete(NULL);
 }
 
 void Robot::CreateConfig(RobotConfig& config) {
@@ -141,11 +149,13 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},    // Pitch2
                                 {{0.0, 0.0, -60.0}},    // Tip
                                 }};
+        arm_config.joint.q_min = {{-90.0, -180.0, -180.0}};
+        arm_config.joint.q_max = {{90.0, 180.0, 180.0}};
         arm_config.act.id = {{0, 1, 2}};
         arm_config.act.gain = {{-RAD_TO_DEG, 0, 0, 
-                                0, RAD_TO_DEG, 0,
-                                0, -RAD_TO_DEG, -RAD_TO_DEG}};
-        arm_config.act.offset = {{60.0, 0.0, -90.0}};
+                                0, -RAD_TO_DEG, 0,
+                                0, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.offset = {{0.0, 90.0, 90.0}};
         config.arm_config[LEFT_FRONT] = arm_config;
         // LEFT BACK
         arm_config.model.xyz =  {{
@@ -155,10 +165,10 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},     // Tip
                                 }};
         arm_config.act.id = {{3, 4, 5}};
-        arm_config.act.gain = {{-RAD_TO_DEG, 0, 0, 
-                                0, RAD_TO_DEG, 0,
-                                0, -RAD_TO_DEG, -RAD_TO_DEG}};
-        arm_config.act.offset = {{120.0, 0.0, -90.0}};
+        arm_config.act.gain = {{RAD_TO_DEG, 0, 0, 
+                                0, -RAD_TO_DEG, 0,
+                                0, RAD_TO_DEG, RAD_TO_DEG}};
+        arm_config.act.offset = {{0.0, 90.0, 90.0}};
         config.arm_config[LEFT_BACK] = arm_config;
         // RIGHT FRONT
         arm_config.model.xyz =  {{
@@ -183,10 +193,10 @@ void Robot::CreateConfig(RobotConfig& config) {
                                 {{0.0, 0.0, -60.0}},     // Tip
                                 }};
         arm_config.act.id = {{9, 10, 11}};
-        arm_config.act.gain = {{-RAD_TO_DEG, 0, 0, 
+        arm_config.act.gain = {{RAD_TO_DEG, 0, 0, 
                                 0, RAD_TO_DEG, 0,
                                 0, -RAD_TO_DEG, -RAD_TO_DEG}};
-        arm_config.act.offset = {{-120.0, 0.0, -90.0}};
+        arm_config.act.offset = {{0.0, -90.0, -90.0}};
         config.arm_config[RIGHT_BACK] = arm_config;
     }
 }
@@ -250,7 +260,7 @@ void Robot::ReactReceivedMsg() {
         switch(type) {
             case MSG_MAINTE_TO_ROBOT_CONTROL_ON: {
                 MsgCmdControl cmd(buf);
-                ReactControlOn(cmd.arm_id, cmd.control_data)
+                ReactControlOn(cmd.arm_id, cmd.control_data);
                 ROBOT_LOG(TAG, "arm_id = %d", cmd.arm_id);
                 break;
             }
@@ -268,8 +278,8 @@ void Robot::ReactReceivedMsg() {
 }
 
 void Robot::ReactControlOn(int arm_id, const ControlData& control_data) {
+    ROBOT_LOG(TAG, "mode = %d", control_data.control_mode);
     // update control_data
-    control_data_[arm_id] = control_data;
 }
 
 /**

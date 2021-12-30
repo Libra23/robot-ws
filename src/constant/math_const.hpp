@@ -17,6 +17,9 @@
 
 #define NUM_WRENCH 6
 
+#define S_TO_MS 1000
+#define MS_TO_S 0.001
+
 enum Axis {
   X,
   Y,

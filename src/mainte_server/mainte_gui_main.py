@@ -85,6 +85,9 @@ class MainteGui(ttk.Frame):
         def callback():
             print('Call control ' + str(i) + ' Mode = ' + self.mode.get())
             button.configure(style="control_on.TButton")
+            for mode in ControlMode:
+                if mode.name == self.mode.get():
+                    self.control_data[i].control_mode = mode.value
             for j in range(self.num_joint):
                 if self.enable_states[i][j].get() == True:
                     self.control_data[i].enable[j] = 1

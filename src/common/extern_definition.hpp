@@ -3,6 +3,7 @@
 
 #include "memory.hpp"
 #include "queue.hpp"
+#include "semaphore.hpp"
 #include "control_data/io_data.hpp"
 
 /**
@@ -15,5 +16,10 @@ extern ShareMemory<InputState> input_memory_;
  * @brief extern queue defined at mainte
  */
 extern Queue mainte_to_robot_queue_;
+
+/**
+ * @brief extern semaphore defined at io_interface
+ */
+extern Semaphore sync_semaphore_;
 
 #endif
