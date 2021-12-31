@@ -5,6 +5,12 @@
 GeneratorBase::GeneratorBase()
     : state_(State::INITIALIZE) {}
 
+GeneratorBase::~GeneratorBase() {}
+
+void GeneratorBase::Config(const Reference& reference) {}
+
+void GeneratorBase::Update(double time, const VectorXd& q_ref_pre, VectorXd& q_ref) {}
+
 void GeneratorBase::StartRequest() {
     if (state_ == State::STOP) {
         state_ = State::RUN;
@@ -27,7 +33,10 @@ void GeneratorBase::CompleteConfig() {
  * @class FKGenerator
  */
 FKGenerator::FKGenerator(uint8_t num_of_joints)
-    : wave_(num_of_joints) {}
+    :   GeneratorBase(),
+        wave_(num_of_joints) {}
+
+FKGenerator::~FKGenerator() {}
 
 void FKGenerator::Config(const Reference& reference) {
     for (size_t i = 0; i < wave_.size(); i++) {

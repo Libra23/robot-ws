@@ -34,6 +34,7 @@ void Robot::Thread() {
         Excute();
         // update
         counter_++;
+        control_time_ = counter_ * ROBOT_CONTROL_CYCLE_TIME_MS * MS_TO_S;
     }
     ROBOT_LOG(TAG, "Kill Task");
     vTaskDelete(NULL);
@@ -44,8 +45,11 @@ void Robot::Initialize() {
     CreateConfig(config_);
     for (size_t i = 0; i < arm_.size(); i++) {
         arm_[i].Config(config_.arm_config[i], i);
+        motion_[i].reset(new FKGenerator(NUM_JOINT));
     }
     counter_ = 0;
+    control_time_ = 0.0;
+    GetDefaultRef(ref_pre_);
 }
 
 void Robot::Excute() {
@@ -66,17 +70,12 @@ void Robot::Excute() {
     }
 
     ReactReceivedMsg();
-    
+
     // ref
     RobotRef ref;
-    GetDefaultRef(ref);
-
-    // calculate q & act_q
     for (size_t i = 0; i < arm_.size(); i++) {
-        bool is_limit;
-        // convert trans to q
-        arm_[i].InverseKinematic(ref.arm[i].trans, ref.body.trans, is_limit, ref.arm[i].q);
-
+        // update ref
+        motion_[i]->Update(control_time_, ref_pre_.arm[i].q, ref.arm[i].q);
         // convert q to act_q
         arm_[i].ConvertToAct(ref.arm[i].q, ref.arm[i].act_q);
     }
@@ -270,12 +269,11 @@ void Robot::ReactReceivedMsg() {
             case MSG_MAINTE_TO_ROBOT_CONTROL_ON: {
                 MsgCmdControl cmd(buf);
                 ReactControlOn(cmd.arm_id, cmd.control_data);
-                ROBOT_LOG(TAG, "arm_id = %d", cmd.arm_id);
                 break;
             }
             case MSG_MAINTE_TO_ROBOT_CONTROL_OFF: {
                 MsgCmdControl cmd(buf);
-                ROBOT_LOG(TAG, "arm_id = %d", cmd.arm_id);
+                ReactControlOff(cmd.arm_id);
                 break;
             }
             default: {
@@ -287,8 +285,31 @@ void Robot::ReactReceivedMsg() {
 }
 
 void Robot::ReactControlOn(int arm_id, const ControlData& control_data) {
-    ROBOT_LOG(TAG, "mode = %d", control_data.control_mode);
-    // update control_data
+    ROBOT_LOG(TAG, "Call React Control On, arm : %d, mode : %d", arm_id, control_data.control_mode);
+    // update control mode
+    switch(control_data.control_mode) {
+        case ControlMode::FK: {
+            motion_[arm_id].reset(new FKGenerator(NUM_JOINT));
+            break;
+        }
+        case ControlMode::IK: {
+            // motion_[arm_id].reset(new IKGenerator(arm_[i]));
+            break;
+        }
+        case ControlMode::ACT_FK: {
+            break;
+        }
+    }
+    // update config
+    motion_[arm_id]->Config(control_data.reference);
+    motion_[arm_id]->CompleteConfig();
+    // start
+    motion_[arm_id]->StartRequest();
+}
+
+void Robot::ReactControlOff(int arm_id) {
+    // stop
+    motion_[arm_id]->StopRequest();
 }
 
 /**

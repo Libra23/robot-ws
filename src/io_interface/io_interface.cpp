@@ -26,7 +26,7 @@ Semaphore sync_semaphore_;
  */
 IoInterface::IoInterface() :
     clock_(IO_INTERFACE_CYCLE_TIME_MS) {
-    IO_LOG(TAG, "Constructor");
+    IO_LOG(TAG, "Call Constructor");
 }
 
 void IoInterface::Thread() {

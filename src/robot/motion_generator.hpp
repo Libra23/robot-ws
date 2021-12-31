@@ -28,6 +28,7 @@ class GeneratorBase {
 class FKGenerator : public GeneratorBase {
     public:
     FKGenerator(uint8_t num_of_joints);
+    ~FKGenerator();
     void Config(const Reference& reference) override;
     void Update(double time, const VectorXd& q_ref_pre, VectorXd& q_ref) override;
     private:
