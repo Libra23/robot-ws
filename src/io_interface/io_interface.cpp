@@ -68,12 +68,12 @@ void IoInterface::Excute() {
 
     // monitor
     const int skip = (1000 / IO_INTERFACE_CYCLE_TIME_MS); // 1 s
-    const uint64_t now_time = get_time_ms();
-    const uint64_t delta_time = now_time - time_;
+    // const uint64_t now_time = get_time_ms();
     if (counter_ % skip == 0) {
-        IO_LOG(TAG, "counter = %lld, delta_time_ms = %lld", counter_, delta_time);
+        // const uint64_t delta_time = now_time - time_;
+        // IO_LOG(TAG, "counter = %lld, delta_time_ms = %lld", counter_, delta_time);
     }
-    time_ = now_time;
+    // time_ = now_time;
 }
 
 void IoInterface::CreateConfig(IoInterfaceConfig& config) {

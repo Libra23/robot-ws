@@ -68,7 +68,7 @@ bool SerialServo::Synchronize(const std::vector<uint8_t>& tx, std::vector<uint8_
     // receive
     uart_handler_.FlushReceive();
     gpio_handler_.Write(en_pin_, LOW);  // change mode to receive
-    uart_handler_.ReadBytes(rx);
+    //uart_handler_.ReadBytes(rx);
     return false;
 }
 

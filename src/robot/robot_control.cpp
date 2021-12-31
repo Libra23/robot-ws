@@ -99,8 +99,8 @@ void Robot::Excute() {
     if (counter_ % skip == 0) {
         // const int index = RIGHT_BACK;
         // ROBOT_LOG(TAG, "count = %lld, act_q = (%f, %f, %f)", counter_, ref.arm[index].act_q[0], ref.arm[index].act_q[1], ref.arm[index].act_q[2]);
-        const uint64_t delta_time = (ref.time - ref_pre_.time);
-        ROBOT_LOG(TAG, "counter = %lld, control_time = %f, delta_time_ms = %lld", counter_, control_time_,  delta_time);
+        // const uint64_t delta_time = (ref.time - ref_pre_.time);
+        // ROBOT_LOG(TAG, "counter = %lld, control_time = %f, delta_time_ms = %lld", counter_, control_time_,  delta_time);
     }
     ref_pre_ = ref;
 }
