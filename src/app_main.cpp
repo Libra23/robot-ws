@@ -14,12 +14,12 @@ extern "C" void app_main () {
     // declare thread
     IoInterfaceMain io_interface_main;
     RobotMain robot_main;
-    // MaintenanceMain mainte_main;
+    MaintenanceMain mainte_main;
 
     // run thread
     io_interface_main.Run();
     robot_main.Run();
-    // mainte_main.Run();
+    mainte_main.Run();
  
     // run threads monitor
     ThreadClock clock_(10000);

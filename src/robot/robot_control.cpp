@@ -18,70 +18,79 @@ static const char *TAG = "Robot";
  * @class Robot
  */
 Robot::Robot() {
-    ROBOT_LOG(TAG, "Constructor");
+    ROBOT_LOG(TAG, "Call Constructor");
 }
 
 void Robot::Thread() {
-    ROBOT_LOG(TAG, "Thread");
+    ROBOT_LOG(TAG, "Start Task");
+    Initialize();
+    // main loop
+    while(true) {
+        // synchronize with semaphore
+        if(!sync_semaphore_.Take()) {
+            break;
+        }
+        // main
+        Excute();
+        // update
+        counter_++;
+    }
+    ROBOT_LOG(TAG, "Kill Task");
+    vTaskDelete(NULL);
+}
+
+void Robot::Initialize() {
     // set config
     CreateConfig(config_);
     for (size_t i = 0; i < arm_.size(); i++) {
         arm_[i].Config(config_.arm_config[i], i);
     }
-
     counter_ = 0;
-    while(true) {
-        // synchronize with semaphore
-        if(sync_semaphore_.Take()) {
-            // input
-            InputState input;
-            input_memory_.Read(input);
+}
 
-            // state
-            RobotState state;
-            ConvertInput(input, state);
-            // calcurate trans
-            for (size_t i = 0; i < arm_.size(); i++) {
-                // convert act_q to q
-                arm_[i].ConvertToJoint(state.arm[i].act_q, state.arm[i].q);
+void Robot::Excute() {
+    // input
+    InputState input;
+    input_memory_.Read(input);
 
-                // convert q to trans
-                arm_[i].ForwardKinematic(state.arm[i].q, state.body.trans, state.arm[i].trans);
-            }
+    // state
+    RobotState state;
+    ConvertInput(input, state);
+    // calcurate trans
+    for (size_t i = 0; i < arm_.size(); i++) {
+        // convert act_q to q
+        arm_[i].ConvertToJoint(state.arm[i].act_q, state.arm[i].q);
 
-            ReactReceivedMsg();
-            
-            // ref
-            RobotRef ref;
-            GetDefaultRef(ref);
-
-            // calculate q & act_q
-            for (size_t i = 0; i < arm_.size(); i++) {
-                bool is_limit;
-                // convert trans to q
-                arm_[i].InverseKinematic(ref.arm[i].trans, ref.body.trans, is_limit, ref.arm[i].q);
-
-                // convert q to act_q
-                arm_[i].ConvertToAct(ref.arm[i].q, ref.arm[i].act_q);
-            }
-
-            // output
-            OutputState output;
-            ConvertOutput(ref, output);
-            output_memory_.Write(output);
-
-            const int skip = (1 * S_TO_MS / ROBOT_CONTROL_CYCLE_TIME_MS); // 1 s
-            if (counter_ % skip == 0) {
-                const int index = RIGHT_BACK;
-                // ROBOT_LOG(TAG, "count = %lld, act_q = (%f, %f, %f)", counter_, ref.arm[index].act_q[0], ref.arm[index].act_q[1], ref.arm[index].act_q[2]);
-            }
-            counter_++;
-        } else {
-            break;
-        }
+        // convert q to trans
+        arm_[i].ForwardKinematic(state.arm[i].q, state.body.trans, state.arm[i].trans);
     }
-    ROBOT_LOG(TAG, "Kill Task");
-    vTaskDelete(NULL);
+
+    ReactReceivedMsg();
+    
+    // ref
+    RobotRef ref;
+    GetDefaultRef(ref);
+
+    // calculate q & act_q
+    for (size_t i = 0; i < arm_.size(); i++) {
+        bool is_limit;
+        // convert trans to q
+        arm_[i].InverseKinematic(ref.arm[i].trans, ref.body.trans, is_limit, ref.arm[i].q);
+
+        // convert q to act_q
+        arm_[i].ConvertToAct(ref.arm[i].q, ref.arm[i].act_q);
+    }
+
+    // output
+    OutputState output;
+    ConvertOutput(ref, output);
+    output_memory_.Write(output);
+
+    const int skip = (1 * S_TO_MS / ROBOT_CONTROL_CYCLE_TIME_MS); // 1 s
+    if (counter_ % skip == 0) {
+        // const int index = RIGHT_BACK;
+        // ROBOT_LOG(TAG, "count = %lld, act_q = (%f, %f, %f)", counter_, ref.arm[index].act_q[0], ref.arm[index].act_q[1], ref.arm[index].act_q[2]);
+    }
 }
 
 void Robot::CreateConfig(RobotConfig& config) {

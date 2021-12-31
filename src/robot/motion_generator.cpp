@@ -66,5 +66,4 @@ void IKGenerator::Update(double time, const VectorXd& q_ref_pre, VectorXd& q_ref
     } else {
         q_ref = q_ref_pre;
     }
-
 }

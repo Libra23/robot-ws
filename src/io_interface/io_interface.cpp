@@ -30,35 +30,40 @@ IoInterface::IoInterface() :
 }
 
 void IoInterface::Thread() {
-    IO_LOG(TAG, "Thread");
-
-    // set config
-    CreateConfig(config_);
-    serial_servo_.Config(config_.serial_servo);
-
-    clock_.Reset();
-    counter_ = 0;
-
+    IO_LOG(TAG, "Start Task");
+    Initialize();
     // main loop
     while(true) {
-        // sleep
+        // cycle period
         clock_.Wait();
-
         // main
-        OutputState output;
-        output_memory_.Read(output);
-        UpdateOutput(output);
-
-        InputState input;
-        UpdateInput(input);
-        input_memory_.Write(input);
-
+        Excute();
         // synchronize with semaphore
         if (counter_ % static_cast<int>(ROBOT_CONTROL_CYCLE_TIME_MS / IO_INTERFACE_CYCLE_TIME_MS) == 0) {
             sync_semaphore_.Give();
         }
+        // update
         counter_++;
     }
+}
+
+void IoInterface::Initialize() {
+    // set config
+    CreateConfig(config_);
+    serial_servo_.Config(config_.serial_servo);
+    clock_.Reset();
+    counter_ = 0;
+}
+
+void IoInterface::Excute() {
+    // output
+    OutputState output;
+    output_memory_.Read(output);
+    UpdateOutput(output);
+    // input
+    InputState input;
+    UpdateInput(input);
+    input_memory_.Write(input);
 }
 
 void IoInterface::CreateConfig(IoInterfaceConfig& config) {
@@ -68,7 +73,7 @@ void IoInterface::CreateConfig(IoInterfaceConfig& config) {
     config.serial_servo.rx_pin = 19;
     config.serial_servo.en_pin = 33;
     config.serial_servo.baud_rate = 1250000;
-    config.serial_servo.time_out_ms = 0;
+    config.serial_servo.time_out_ms = 5;
 }
 
 void IoInterface::UpdateInput(InputState& state) {

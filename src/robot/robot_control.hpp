@@ -21,6 +21,8 @@ class Robot {
     Robot();
     void Thread();
     private:
+    void Initialize();
+    void Excute();
     void CreateConfig(RobotConfig& config);
     void UpdateState(RobotState& state);
     void UpdateRef(RobotOut& out);

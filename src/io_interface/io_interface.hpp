@@ -18,6 +18,8 @@ class IoInterface {
     IoInterface();
     void Thread();
     private:
+    void Initialize();
+    void Excute();
     void CreateConfig(IoInterfaceConfig& config);
     void UpdateInput(InputState& state);
     void UpdateOutput(const OutputState& state);
