@@ -22,10 +22,8 @@ extern "C" void app_main () {
     mainte_main.Run();
  
     // run threads monitor
-    ThreadClock clock_(10000);
-    clock_.Reset();
     while(true) {
-        clock_.Wait();
+        vTaskDelay(portMAX_DELAY);
         //std::cout << "robot_thread_margin = " << robot_main.StackMargin() << std::endl;
         //std::cout << "io_thread_margin = " << io_interface_main.StackMargin() << std::endl;
         //std::cout << "mainte_thread_margin = " << mainte_main.StackMargin() << std::endl;

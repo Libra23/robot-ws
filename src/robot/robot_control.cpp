@@ -17,7 +17,8 @@ static const char *TAG = "Robot";
 /**
  * @class Robot
  */
-Robot::Robot() {
+Robot::Robot() :
+    clock_(ROBOT_CONTROL_CYCLE_TIME_MS)  {
     ROBOT_LOG(TAG, "Call Constructor");
 }
 
@@ -26,9 +27,14 @@ void Robot::Thread() {
     Initialize();
     // main loop
     while(true) {
-        // synchronize with semaphore
-        if(!sync_semaphore_.Take()) {
-            break;
+        if (true) {
+            // synchronize with semaphore
+            if(!sync_semaphore_.Take()) {
+                break;
+            }
+        } else {
+            // synchronize with cycle period
+            clock_.Wait();
         }
         // main
         Excute();
@@ -47,6 +53,7 @@ void Robot::Initialize() {
         arm_[i].Config(config_.arm_config[i], i);
         motion_[i].reset(new FKGenerator(NUM_JOINT));
     }
+    clock_.Reset();
     counter_ = 0;
     control_time_ = 0.0;
     GetDefaultRef(ref_pre_);
@@ -69,10 +76,12 @@ void Robot::Excute() {
         arm_[i].ForwardKinematic(state.arm[i].q, state.body.trans, state.arm[i].trans);
     }
 
+    // react msg from mainte server
     ReactReceivedMsg();
 
     // ref
     RobotRef ref;
+    ref.time = get_time_ms();
     for (size_t i = 0; i < arm_.size(); i++) {
         // update ref
         motion_[i]->Update(control_time_, ref_pre_.arm[i].q, ref.arm[i].q);
@@ -85,11 +94,15 @@ void Robot::Excute() {
     ConvertOutput(ref, output);
     output_memory_.Write(output);
 
+    // monitor
     const int skip = (1 * S_TO_MS / ROBOT_CONTROL_CYCLE_TIME_MS); // 1 s
     if (counter_ % skip == 0) {
         // const int index = RIGHT_BACK;
         // ROBOT_LOG(TAG, "count = %lld, act_q = (%f, %f, %f)", counter_, ref.arm[index].act_q[0], ref.arm[index].act_q[1], ref.arm[index].act_q[2]);
+        const uint64_t delta_time = (ref.time - ref_pre_.time);
+        ROBOT_LOG(TAG, "counter = %lld, control_time = %f, delta_time_ms = %lld", counter_, control_time_,  delta_time);
     }
+    ref_pre_ = ref;
 }
 
 void Robot::CreateConfig(RobotConfig& config) {
@@ -321,7 +334,7 @@ RobotMain::RobotMain() {
 
 void RobotMain::Run() {
     ROBOT_LOG("Robot Main", "Run");
-    th_.Start(RobotMain::LaunchThread, "robot_thread", 2, 8192, &robot_, 0);
+    th_.Start(RobotMain::LaunchThread, "robot_thread", 10, 8192, &robot_, 0);
 }
 
 uint32_t RobotMain::StackMargin() {

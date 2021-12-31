@@ -310,7 +310,7 @@ MaintenanceMain::MaintenanceMain() {
 
 void MaintenanceMain::Run() {
     MAINTE_LOG("Maintenance Main", "Run");
-    th_.Start(MaintenanceMain::LaunchThread, "mainte_thread", 1, 8192, &maintenance_, 1);
+    th_.Start(MaintenanceMain::LaunchThread, "mainte_thread", 1, 4096, &maintenance_, 0);
 }
 
 uint32_t MaintenanceMain::StackMargin() {

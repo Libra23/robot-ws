@@ -53,6 +53,7 @@ void IoInterface::Initialize() {
     serial_servo_.Config(config_.serial_servo);
     clock_.Reset();
     counter_ = 0;
+    time_ = get_time_ms();
 }
 
 void IoInterface::Excute() {
@@ -64,6 +65,15 @@ void IoInterface::Excute() {
     InputState input;
     UpdateInput(input);
     input_memory_.Write(input);
+
+    // monitor
+    const int skip = (1000 / IO_INTERFACE_CYCLE_TIME_MS); // 1 s
+    const uint64_t now_time = get_time_ms();
+    const uint64_t delta_time = now_time - time_;
+    if (counter_ % skip == 0) {
+        IO_LOG(TAG, "counter = %lld, delta_time_ms = %lld", counter_, delta_time);
+    }
+    time_ = now_time;
 }
 
 void IoInterface::CreateConfig(IoInterfaceConfig& config) {
@@ -112,7 +122,7 @@ IoInterfaceMain::IoInterfaceMain() {
 
 void IoInterfaceMain::Run() {
     IO_LOG("Io Interface Main", "Run");
-    th_.Start(IoInterfaceMain::LaunchThread, "io_thread", 1, 4096, &io_interface_, 1);
+    th_.Start(IoInterfaceMain::LaunchThread, "io_thread", 10, 4096, &io_interface_, 1);
 }
 
 uint32_t IoInterfaceMain::StackMargin() {

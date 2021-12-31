@@ -36,6 +36,7 @@ class Robot {
     std::array<Arm, NUM_ARM> arm_;
     std::array<std::unique_ptr<GeneratorBase>, NUM_ARM> motion_;
     RobotConfig config_;
+    ThreadClock clock_;
     uint64_t counter_;
     double control_time_;
     RobotRef ref_pre_;

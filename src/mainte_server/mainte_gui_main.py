@@ -36,6 +36,7 @@ class MainteGui(ttk.Frame):
         self.input_queue = input_queue
         self.output_queue = output_queue
         self.control_data = [ControlData() for i in range(self.num_arm)]
+        self.control_state = [False for i in range(self.num_arm)]
         # init frame parameter
         self.mode = tkinter.StringVar()
         self.enable_states = [[tkinter.BooleanVar(value = True) for j in range(self.num_joint)] for i in range(self.num_arm)]
@@ -83,8 +84,6 @@ class MainteGui(ttk.Frame):
     # Callback Function --->>>
     def control_callback(self, i, button):
         def callback():
-            print('Call control ' + str(i) + ' Mode = ' + self.mode.get())
-            button.configure(style="control_on.TButton")
             for mode in ControlMode:
                 if mode.name == self.mode.get():
                     self.control_data[i].control_mode = mode.value
@@ -93,8 +92,18 @@ class MainteGui(ttk.Frame):
                     self.control_data[i].enable[j] = 1
                 else:
                     self.control_data[i].enable[j] = 0
-            msg = MsgCmdControl(MsgType.MSG_GUI_TO_SERVER_CONTROL_ON, i, self.control_data[i])
-            self.output_queue.put(msg)
+            if self.control_state[i]:
+                print('Call control off ' + str(i) + ' Mode = ' + self.mode.get())
+                self.control_state[i] =  False
+                button.configure(style="control_off.TButton")
+                msg = MsgCmdControl(MsgType.MSG_GUI_TO_SERVER_CONTROL_OFF, i, self.control_data[i])
+                self.output_queue.put(msg)
+            else:
+                print('Call control on ' + str(i) + ' Mode = ' + self.mode.get())
+                self.control_state[i] =  True
+                button.configure(style="control_on.TButton")
+                msg = MsgCmdControl(MsgType.MSG_GUI_TO_SERVER_CONTROL_ON, i, self.control_data[i])
+                self.output_queue.put(msg)
         return callback
 
     def reference_callback(self, i):

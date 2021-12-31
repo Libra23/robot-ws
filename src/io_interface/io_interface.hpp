@@ -27,6 +27,7 @@ class IoInterface {
     IoInterfaceConfig config_;
     ThreadClock clock_;
     uint64_t counter_;
+    uint64_t time_;
 };
 
 class IoInterfaceMain {

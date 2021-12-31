@@ -21,6 +21,7 @@ struct ArmState {
         act_q(VectorXd::Zero(NUM_JOINT)) {}
 };
 struct RobotState {
+    uint64_t time;
     BodyState body;
     std::array<ArmState, NUM_ARM> arm;
     RobotState() : 
@@ -29,6 +30,7 @@ struct RobotState {
 };
 
 struct RobotRef {
+    uint64_t time;
     BodyState body;
     std::array<ArmState, NUM_ARM> arm;
     RobotRef() : 
