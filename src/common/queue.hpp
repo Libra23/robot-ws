@@ -7,10 +7,10 @@
 class Queue {
     public:
     Queue(uint32_t length, uint32_t size);
-    void Send(const void* data);
-    void Receive(void* data);
+    bool Send(const void* data);
+    bool Receive(void* data);
     uint32_t NumOfItems();
-    void ReceivePeek(void* data);
+    bool ReceivePeek(void* data);
     private:
     QueueHandle_t x_queue_;
 };

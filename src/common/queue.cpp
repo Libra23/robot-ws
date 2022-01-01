@@ -4,13 +4,19 @@ Queue::Queue(uint32_t length, uint32_t size) {
     x_queue_ = xQueueCreate(length, size);
 }
 
-void Queue::Send(const void* data) {
-    if (xQueueSendToBack(x_queue_, data, portMAX_DELAY) != pdTRUE) {
+bool Queue::Send(const void* data) {
+    if (xQueueSendToBack(x_queue_, data, portMAX_DELAY) == pdTRUE) {
+        return true;
+    } else {
+        return false;
     }
 }
 
-void Queue::Receive(void* data) {
-    if (xQueueReceive(x_queue_, data, portMAX_DELAY) != pdTRUE) {
+bool Queue::Receive(void* data) {
+    if (xQueueReceive(x_queue_, data, portMAX_DELAY) == pdTRUE) {
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -18,7 +24,10 @@ uint32_t Queue::NumOfItems() {
     return uxQueueMessagesWaiting(x_queue_);
 }
 
-void Queue::ReceivePeek(void* data) {
-    if (xQueuePeek(x_queue_, data, portMAX_DELAY) != pdTRUE) {
+bool Queue::ReceivePeek(void* data) {
+    if (xQueuePeek(x_queue_, data, portMAX_DELAY) == pdTRUE) {
+        return true;
+    } else {
+        return false;
     }
 }
