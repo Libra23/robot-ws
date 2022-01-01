@@ -12,20 +12,14 @@ bool Semaphore::Take() {
     }
 }
 
-bool Semaphore::Take(uint32_t wait_ms) {
-    if (xSemaphoreTake(x_semaphore_, wait_ms / portTICK_RATE_MS) == pdTRUE) {
+bool Semaphore::Give() {
+    if (xSemaphoreGive(x_semaphore_) == pdTRUE) {
         return true;
     } else {
         return false;
     }
 }
 
-void Semaphore::Give() {
-    if (xSemaphoreGive(x_semaphore_) != pdTRUE) {
-        // error
-    }
-}
-
-int32_t Semaphore::GetCount() {
-    return uxSemaphoreGetCount(x_semaphore_);
+uint32_t Semaphore::GetCount() {
+    return static_cast<uint32_t>(uxSemaphoreGetCount(x_semaphore_));
 }

@@ -7,10 +7,9 @@
 class Semaphore {
     public:
     Semaphore();
-    bool Take(uint32_t wait_ms);
     bool Take();
-    void Give();
-    int32_t GetCount();
+    bool Give();
+    uint32_t GetCount();
     private:
     SemaphoreHandle_t x_semaphore_;
 };
